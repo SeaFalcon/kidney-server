@@ -8,4 +8,5 @@ module.exports = function(app){
     app.get('/check', jwtMiddleware, user.check);
 
     app.post('/user', user.signUp);
+    app.post('/login', user.signIn);
 };

@@ -5,7 +5,7 @@ async function userEmailCheck(email) {
   const connection = await pool.getConnection(async (conn) => conn);
   const selectEmailQuery = `
                 SELECT email, nickname 
-                FROM UserInfo 
+                FROM user 
                 WHERE email = ?;
                 `;
   const selectEmailParams = [email];
@@ -22,7 +22,7 @@ async function userNicknameCheck(nickname) {
   const connection = await pool.getConnection(async (conn) => conn);
   const selectNicknameQuery = `
                 SELECT email, nickname 
-                FROM UserInfo 
+                FROM user 
                 WHERE nickname = ?;
                 `;
   const selectNicknameParams = [nickname];
@@ -37,8 +37,8 @@ async function userNicknameCheck(nickname) {
 async function insertUserInfo(insertUserInfoParams) {
   const connection = await pool.getConnection(async (conn) => conn);
   const insertUserInfoQuery = `
-        INSERT INTO UserInfo(email, pswd, nickname)
-        VALUES (?, ?, ?);
+        INSERT INTO user (email, pw)
+        VALUES (?, ?);
     `;
   const insertUserInfoRow = await connection.query(
     insertUserInfoQuery,
@@ -52,8 +52,8 @@ async function insertUserInfo(insertUserInfoParams) {
 async function selectUserInfo(email) {
   const connection = await pool.getConnection(async (conn) => conn);
   const selectUserInfoQuery = `
-                SELECT id, email , pswd, nickname, status 
-                FROM UserInfo 
+                SELECT *
+                FROM user
                 WHERE email = ?;
                 `;
 
