@@ -9,4 +9,7 @@ module.exports = function(app){
 
     app.post('/user', user.signUp);
     app.post('/login', user.signIn);
+
+
+    //app.patch('./user', jwtMiddleware, user.updateUserName);
 };
