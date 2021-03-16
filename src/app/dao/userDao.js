@@ -98,10 +98,44 @@ async function updateUserName(id, name){
   return updateUserNameRow;
 }
 
+async function findUserByKakaoId(kakaoId) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const userInfoQuery = `
+                SELECT *
+                FROM user
+                WHERE kakaoId = ?;
+                `;
+
+  let userInfoParams = [kakaoId];
+  const [userInfoRows] = await connection.query(
+    userInfoQuery,
+    userInfoParams
+  );
+  return [userInfoRows];
+}
+
+async function insertKakaoUser(nickname, profileImageUrl, kakaoId) {
+  console.log(nickname, profileImageUrl, kakaoId)
+
+  const connection = await pool.getConnection(async (conn) => conn);
+  const insertUserInfoByKakaoIdQuery = `
+        INSERT INTO user (nickname, profileImageUrl, kakaoId)
+        VALUES (?, ?, ?);
+    `;
+  const insertUserInfoByKakaoIdRow = await connection.query(
+    insertUserInfoByKakaoIdQuery,
+    [nickname, profileImageUrl, kakaoId]
+  );
+  connection.release();
+  return insertUserInfoByKakaoIdRow;
+}
+
 module.exports = {
   userEmailCheck,
   userNicknameCheck,
   insertUserInfo,
   selectUserInfo,
-  findUserById
+  findUserById,
+  findUserByKakaoId,
+  insertKakaoUser
 };
