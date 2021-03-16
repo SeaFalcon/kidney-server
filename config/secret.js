@@ -1,3 +1,3 @@
 module.exports = {
-    'jwtsecret' :  'softsquared_jwt_secret_key_07040014087',
+    'jwtsecret' :  'c8444e9f28e40253a8263ac95045584cb46a70db80994c54ec046c3f7343964c',
 };
