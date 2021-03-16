@@ -15,9 +15,10 @@ const { constants } = require('buffer');
  */
 exports.signUp = async function (req, res) {
     const {
-        email, password //, nickname
+        email, password , nickname, height, weight, gender, kidneyType, birth //, nickname
     } = req.body;
 
+    console.log(req.body);
     if (!email) return res.json({ isSuccess: false, code: 301, message: "이메일을 입력해주세요." });
     if (email.length > 30) return res.json({
         isSuccess: false,
@@ -33,6 +34,20 @@ exports.signUp = async function (req, res) {
         code: 305,
         message: "비밀번호는 6~20자리를 입력해주세요."
     });
+
+
+    if (!nickname) return res.json({ isSuccess: false, code: 400, message: "닉네임을 입력 해주세요." });
+    if (nickname.length>10) return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "닉네임은 최대 10자리까지 입력해주세요. "
+    });
+
+    
+
+
+
+    
 
     // if (!nickname) return res.json({ isSuccess: false, code: 306, message: "닉네임을 입력 해주세요." });
     // if (nickname.length > 20) return res.json({
@@ -52,6 +67,14 @@ exports.signUp = async function (req, res) {
             });
         }
 
+        const ninknameRows = await userDao.userNicknameCheck(nickname);
+        if(ninknameRows.length > 0){
+            return res.json({
+                isSuccess: false,
+                code: 400,
+                message:"중복된 닉네임 입니다."
+            });
+        }
         // 닉네임 중복 확인
         // const nicknameRows = await userDao.userNicknameCheck(nickname);
         // if (nicknameRows.length > 0) {
@@ -65,7 +88,7 @@ exports.signUp = async function (req, res) {
         // TRANSACTION : advanced
         // await connection.beginTransaction(); // START TRANSACTION
         const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
-        const insertUserInfoParams = [email, hashedPassword]//, nickname];
+        const insertUserInfoParams = [email, hashedPassword, nickname, height, weight, gender, kidneyType, birth]//, nickname];
 
         const insertUserRows = await userDao.insertUserInfo(insertUserInfoParams);
 
@@ -74,7 +97,8 @@ exports.signUp = async function (req, res) {
         return res.json({
             isSuccess: true,
             code: 200,
-            message: "회원가입 성공"
+            message: "회원가입 성공",
+            
         });
     } catch (err) {
         // await connection.rollback(); // ROLLBACK
@@ -92,6 +116,8 @@ exports.signIn = async function (req, res) {
     const {
         email, password
     } = req.body;
+
+    console.log(req.body);
 
     if (!email) return res.json({ isSuccess: false, code: 301, message: "이메일을 입력해주세요." });
     if (email.length > 30) return res.json({
@@ -181,4 +207,28 @@ exports.check = async function (req, res) {
         message: "검증 성공",
         info: req.verifiedToken
     })
+
 };
+
+
+exports.updateUserName = async function(req, res){
+    const {verifiedToken :{id}, body:{name}} = req;
+
+    const [userRows] = await userDao.findUserById(id);
+
+    if(userInfoRows.length<1){
+        return res.json({
+            message: '수정실패'
+        });
+    }
+
+    try{
+        const result =  await userDao.updateUserName(id, name);
+    }catch(e){
+        console.length(e, '에러발생');
+        res.json({
+            code:500, 
+            message:'에러발생'
+        })
+    }
+}
