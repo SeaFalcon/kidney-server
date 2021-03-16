@@ -37,8 +37,8 @@ async function userNicknameCheck(nickname) {
 async function insertUserInfo(insertUserInfoParams) {
   const connection = await pool.getConnection(async (conn) => conn);
   const insertUserInfoQuery = `
-        INSERT INTO user (email, pw)
-        VALUES (?, ?);
+        INSERT INTO user (email, pw, nickname, height, weight, gender, kidneyDiseaseTypeId, birth)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?);
     `;
   const insertUserInfoRow = await connection.query(
     insertUserInfoQuery,
@@ -47,6 +47,8 @@ async function insertUserInfo(insertUserInfoParams) {
   connection.release();
   return insertUserInfoRow;
 }
+
+
 
 //SignIn
 async function selectUserInfo(email) {
@@ -65,9 +67,41 @@ async function selectUserInfo(email) {
   return [userInfoRows];
 }
 
+async function findUserById(id){
+  const connection = await pool.getConnection(async (conn) => conn);
+  const findUserByIdQuery = `
+    SELECT *
+    FROM user
+    WHERE email = ?;
+  `;
+  let findUserByIdParams = [id];
+  const [findUserByIdRows] = await connection.query(
+    findUserByIdQuery,
+    findUserByIdParams
+  );
+
+  return [findUserByIdRows];
+}
+async function updateUserName(id, name){
+  const connection = await pool.getConnection(async (conn) => conn);
+  const updateUserNameQuery = `
+        UPDATE  user SET name = ?
+        WHERE userID = ?
+  `;
+  const updateUserNameRow = await connection.query(
+    updateUserNameQuery,
+    [name, id]
+  );
+  connection.release();
+  
+  connection.log(updateUserNameRow);
+  return updateUserNameRow;
+}
+
 module.exports = {
   userEmailCheck,
   userNicknameCheck,
   insertUserInfo,
   selectUserInfo,
+  findUserById
 };
