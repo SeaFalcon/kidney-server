@@ -37,8 +37,8 @@ async function userNicknameCheck(nickname) {
 async function insertUserInfo(insertUserInfoParams) {
   const connection = await pool.getConnection(async (conn) => conn);
   const insertUserInfoQuery = `
-        INSERT INTO user (email, pw, nickname, height, weight, gender, kidneyDiseaseTypeId, birth)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+        INSERT INTO user (email, pw, nickname, height, weight, gender, kidneyDiseaseTypeId, birth, activityId)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
     `;
   const insertUserInfoRow = await connection.query(
     insertUserInfoQuery,

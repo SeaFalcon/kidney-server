@@ -5,8 +5,8 @@ const pool = mysql.createPool({
     host: '127.0.0.1',
     user: 'root',
     port: 3306,
-    password: '1111',
-    database: 'kidneys'
+    password: 'root',
+    database: 'dreamchan_db'
 });
 
 module.exports = {
