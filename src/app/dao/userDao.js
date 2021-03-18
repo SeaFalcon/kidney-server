@@ -85,7 +85,7 @@ async function findUserById(id){
 async function updateUserName(id, name){
   const connection = await pool.getConnection(async (conn) => conn);
   const updateUserNameQuery = `
-        UPDATE  user SET name = ?
+        UPDATE user SET name = ?
         WHERE userID = ?
   `;
   const updateUserNameRow = await connection.query(
@@ -115,8 +115,6 @@ async function findUserByKakaoId(kakaoId) {
 }
 
 async function insertKakaoUser(nickname, profileImageUrl, kakaoId) {
-  console.log(nickname, profileImageUrl, kakaoId)
-
   const connection = await pool.getConnection(async (conn) => conn);
   const insertUserInfoByKakaoIdQuery = `
         INSERT INTO user (nickname, profileImageUrl, kakaoId)

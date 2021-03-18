@@ -9,8 +9,6 @@ const crypto = require('crypto');
 const secret_config = require('../../../config/secret');
 
 const userDao = require('../dao/userDao');
-const { access } = require('fs');
-const { dotAll } = require('regex-email');
 
 /**
  update : 2020.10.4
@@ -23,7 +21,8 @@ exports.signUp = async function (req, res) {
 
     console.log(req.body);
     if (!email) return res.json({ isSuccess: false, code: 301, message: "이메일을 입력해주세요." });
-    if (email.length > 30) return res.json({
+    if (email.length > 30) {
+      return res.json({
         isSuccess: false,
         code: 308,
         message: "중복된 이메일입니다."
@@ -42,33 +41,26 @@ exports.signUp = async function (req, res) {
 
     // TRANSACTION : advanced
     // await connection.beginTransaction(); // START TRANSACTION
-    const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
-    const insertUserInfoParams = [email, hashedPassword]//, nickname];
+    // const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
+    // const insertUserInfoParams = [email, hashedPassword]//, nickname];
 
-    const insertUserRows = await userDao.insertUserInfo(insertUserInfoParams);
+    // const insertUserRows = await userDao.insertUserInfo(insertUserInfoParams);
 
-    //  await connection.commit(); // COMMIT
-    // connection.release();
-    return res.json({
-      isSuccess: true,
-      code: 200,
-      message: "회원가입 성공"
+    // //  await connection.commit(); // COMMIT
+    // // connection.release();
+    // return res.json({
+    //   isSuccess: true,
+    //   code: 200,
+    //   message: "회원가입 성공"
+    // });
+    
+    if (!nickname) return res.json({ isSuccess: false, code: 400, message: "닉네임을 입력 해주세요." });
+    if (nickname.length>10) return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "닉네임은 최대 10자리까지 입력해주세요. "
     });
 
-
-
-    
-
-
-
-    
-
-    // if (!nickname) return res.json({ isSuccess: false, code: 306, message: "닉네임을 입력 해주세요." });
-    // if (nickname.length > 20) return res.json({
-    //     isSuccess: false,
-    //     code: 307,
-    //     message: "닉네임은 최대 20자리를 입력해주세요."
-    // });
     try {
         // 이메일 중복 확인
         const emailRows = await userDao.userEmailCheck(email);
@@ -89,15 +81,6 @@ exports.signUp = async function (req, res) {
                 message:"중복된 닉네임 입니다."
             });
         }
-        // 닉네임 중복 확인
-        // const nicknameRows = await userDao.userNicknameCheck(nickname);
-        // if (nicknameRows.length > 0) {
-        //     return res.json({
-        //         isSuccess: false,
-        //         code: 309,
-        //         message: "중복된 닉네임입니다."
-        //     });
-        // }
 
         // TRANSACTION : advanced
         // await connection.beginTransaction(); // START TRANSACTION
@@ -156,7 +139,8 @@ exports.signIn = async function (req, res) {
     console.log(req.body);
 
     if (!email) return res.json({ isSuccess: false, code: 301, message: "이메일을 입력해주세요." });
-    if (email.length > 30) return res.json({
+    if (email.length > 30) {
+      return res.json({
         isSuccess: false,
         code: 311,
         message: "비밀번호를 확인해주세요."
@@ -235,8 +219,6 @@ exports.kakaoLogin = async function (req, res) {
 
     const [userInfoRows] = await userDao.findUserByKakaoId(kakaoId);
 
-    console.log('userInfoRows', userInfoRows)
-
     // 로그인
     if (userInfoRows.length) {
       //토큰 생성
@@ -250,7 +232,7 @@ exports.kakaoLogin = async function (req, res) {
         } // 유효 시간은 365일
       );
 
-      res.json({
+      return res.json({
         userInfo: {
           nickname: userInfoRows[0].nickname,
           profileImageUrl: userInfoRows[0].profileImageUrl
@@ -262,16 +244,39 @@ exports.kakaoLogin = async function (req, res) {
       });
       // 회원가입
     } else {
-      console.log('JOIN!!!!!!!!!!');
+      const [insertResult] = await userDao.insertKakaoUser(nickname, profile_image_url, kakaoId);
+      
+      if(insertResult.insertId) {
+        const [userRows] = await userDao.findUserByKakaoId(kakaoId);
 
-      const insertResult = await userDao.insertKakaoUser(nickname, profile_image_url, kakaoId);
-      console.log(insertResult);
+        let token = await jwt.sign({
+          id: userRows[0].userId,
+        }, // 토큰의 내용(payload)
+          secret_config.jwtsecret, // 비밀 키
+          {
+            expiresIn: '365d',
+            subject: 'userInfo',
+          } // 유효 시간은 365일
+        );
+  
+        return res.json({
+          userInfo: {
+            nickname: userRows[0].nickname,
+            profileImageUrl: userRows[0].profileImageUrl
+          },
+          jwt: token,
+          isSuccess: true,
+          code: 200,
+          message: "카카오 회원가입 및 로그인 성공"
+        });
+      }
 
     }
 
     console.log('result', result.data);
   } catch (e) {
-    res.json(e);
+    console.log(e);
+    res.json({code: 400, message: '카카오 회원가입 및 로그인 실패'});
   }
 }
 
