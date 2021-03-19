@@ -3,14 +3,8 @@ const compression = require('compression');
 const methodOverride = require('method-override');
 var cors = require('cors');
 require('dotenv').config();
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 module.exports = function () {
     const app = express();
-
-    
 
     app.use(compression());
 

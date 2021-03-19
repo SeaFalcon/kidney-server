@@ -162,7 +162,14 @@ exports.signIn = async function (req, res) {
 
     res.json({
       userInfo: {
-        email: userInfoRows[0].email
+        email: userInfoRows[0].email,
+        nickname: userInfoRows[0].nickname,
+        kidneyType: userInfoRows[0].kidneyDiseaseTypeId,
+        age: new Date().getFullYear() - new Date(userInfoRows[0].birth).getFullYear() + '세',
+        gender: userInfoRows[0].gender === 'F' ? '여성' : '남성',
+        height: userInfoRows[0].height + 'cm',
+        weight: userInfoRows[0].weight + 'kg',
+        activityId: userInfoRows[0].activityId,
       },
       jwt: token,
       isSuccess: true,
