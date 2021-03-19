@@ -44,17 +44,7 @@ exports.signUp = async function (req, res) {
     message: "닉네임은 최대 10자리까지 입력해주세요. "
   });
 
-  if (birth.length != 8) return res.json({
-    isSuccess: false,
-    code: 400,
-    message: "8자리 생년월일을 입력해주세요. "
-  });
 
-  if (birth[2] == 1 && birth[3] > 2) return res.json({
-    isSuccess: false,
-    code: 400,
-    message: "올바른 생년월일을 입력해주세요. "
-  });
 
   try {
     // 이메일 중복 확인
