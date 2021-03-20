@@ -16,4 +16,5 @@ module.exports = function(app){
 
     //app.patch('./user', jwtMiddleware, user.updateUserName);
     app.post('/kakao', user.kakaoLogin);
+    app.post('/user/kakao', jwtMiddleware, user.saveKakaoUserInfo)
 };

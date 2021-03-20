@@ -66,7 +66,7 @@ exports.signUp = async function (req, res) {
         message: "중복된 닉네임 입니다."
       });
     }
-    
+
     // TRANSACTION : advanced
     // await connection.beginTransaction(); // START TRANSACTION
     const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
@@ -170,6 +170,7 @@ exports.signIn = async function (req, res) {
         height: userInfoRows[0].height + 'cm',
         weight: userInfoRows[0].weight + 'kg',
         activityId: userInfoRows[0].activityId,
+        profileImageUrl: userInfoRows[0].profileImageUrl,
       },
       jwt: token,
       isSuccess: true,
@@ -203,7 +204,7 @@ exports.kakaoLogin = async function (req, res) {
   console.log(accessToken);
 
   try {
-    const { data: { id: kakaoId, kakao_account: { profile: { nickname, profile_image_url } } } } = await axios.get('https://kapi.kakao.com/v2/user/me', {
+    const { data: { id: kakaoId, kakao_account: { email, profile: { nickname, profile_image_url: profileImageUrl } } } } = await axios.get('https://kapi.kakao.com/v2/user/me', {
       headers: {
         Authorization: `bearer ${accessToken}`,
         'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
@@ -227,8 +228,15 @@ exports.kakaoLogin = async function (req, res) {
 
       return res.json({
         userInfo: {
-          nickname: userInfoRows[0].nickname,
-          profileImageUrl: userInfoRows[0].profileImageUrl
+          email,
+          nickname,
+          profileImageUrl,
+          kidneyType: userInfoRows[0].kidneyDiseaseTypeId ? userInfoRows[0].kidneyDiseaseTypeId : '',
+          age: userInfoRows[0].birth ? new Date().getFullYear() - new Date(userInfoRows[0].birth).getFullYear() + '세' : '',
+          gender: userInfoRows[0].gender ? userInfoRows[0].gender === 'F' ? '여성' : '남성' : '',
+          height: userInfoRows[0].height ? userInfoRows[0].height + 'cm' : '',
+          weight: userInfoRows[0].weight ? userInfoRows[0].weight + 'kg' : '',
+          activityId: userInfoRows[0].activityId ? userInfoRows[0].activityId : '',
         },
         jwt: token,
         isSuccess: true,
@@ -237,7 +245,7 @@ exports.kakaoLogin = async function (req, res) {
       });
       // 회원가입
     } else {
-      const [insertResult] = await userDao.insertKakaoUser(nickname, profile_image_url, kakaoId);
+      const [insertResult] = await userDao.insertKakaoUser(nickname, profileImageUrl, kakaoId);
 
       if (insertResult.insertId) {
         const [userRows] = await userDao.findUserByKakaoId(kakaoId);
@@ -329,3 +337,34 @@ exports.Nicknamecheck = async function (req, res) {
     return res.status(500).send(`Error: ${err.message}`);
   }
 };
+
+exports.saveKakaoUserInfo = async function (req, res) {
+  const {
+    body: { height, weight, gender, kidneyType, birth, activityId }, verifiedToken: {id}
+  } = req;
+
+  try {
+    const updateKakaoUserInfoParams = [height, weight, gender, kidneyType, birth, activityId, id];
+
+    const [updateKakaoUserRows] = await userDao.updateKakaoUserInfo(updateKakaoUserInfoParams);
+
+    console.log(updateKakaoUserRows);
+
+    if (updateKakaoUserRows.affectedRows) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "카카오 회원가입 (추가정보 입력) 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "카카오 회원가입 (추가정보 입력) 실패",
+      });
+    }
+  } catch (err) {
+    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+}

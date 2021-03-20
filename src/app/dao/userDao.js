@@ -128,6 +128,20 @@ async function insertKakaoUser(nickname, profileImageUrl, kakaoId) {
   return insertUserInfoByKakaoIdRow;
 }
 
+async function updateKakaoUserInfo(updateKakaoUserInfoParams) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const updateKakaoUserInfoQuery = `
+        UPDATE user SET height = ?, weight = ?, gender = ?, kidneyDiseaseTypeId = ?, birth = ?, activityId = ?
+        WHERE userId = ?
+    `;
+  const updateKakaoUserInfoRow = await connection.query(
+    updateKakaoUserInfoQuery,
+    updateKakaoUserInfoParams
+  );
+  connection.release();
+  return updateKakaoUserInfoRow;
+}
+
 module.exports = {
   userEmailCheck,
   userNicknameCheck,
@@ -135,5 +149,6 @@ module.exports = {
   selectUserInfo,
   findUserById,
   findUserByKakaoId,
-  insertKakaoUser
+  insertKakaoUser,
+  updateKakaoUserInfo
 };
