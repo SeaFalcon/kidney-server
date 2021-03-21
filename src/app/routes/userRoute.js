@@ -13,8 +13,8 @@ module.exports = function(app){
     app.post('/emailCheck', user.Emailcheck);
     app.post('/nicknameCheck', user.Nicknamecheck);
 
-
-    //app.patch('./user', jwtMiddleware, user.updateUserName);
     app.post('/kakao', user.kakaoLogin);
     app.post('/user/kakao', jwtMiddleware, user.saveKakaoUserInfo)
+
+    app.patch('/user', jwtMiddleware, user.changePassword);
 };

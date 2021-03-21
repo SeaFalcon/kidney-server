@@ -165,10 +165,10 @@ exports.signIn = async function (req, res) {
         email: userInfoRows[0].email,
         nickname: userInfoRows[0].nickname,
         kidneyType: userInfoRows[0].kidneyDiseaseTypeId,
-        age: new Date().getFullYear() - new Date(userInfoRows[0].birth).getFullYear() + '세',
-        gender: userInfoRows[0].gender === 'F' ? '여성' : '남성',
-        height: userInfoRows[0].height + 'cm',
-        weight: userInfoRows[0].weight + 'kg',
+        age: new Date().getFullYear() - new Date(userInfoRows[0].birth).getFullYear(),
+        gender: userInfoRows[0].gender,
+        height: userInfoRows[0].height,
+        weight: userInfoRows[0].weight,
         activityId: userInfoRows[0].activityId,
         profileImageUrl: userInfoRows[0].profileImageUrl,
       },
@@ -232,11 +232,12 @@ exports.kakaoLogin = async function (req, res) {
           nickname,
           profileImageUrl,
           kidneyType: userInfoRows[0].kidneyDiseaseTypeId ? userInfoRows[0].kidneyDiseaseTypeId : '',
-          age: userInfoRows[0].birth ? new Date().getFullYear() - new Date(userInfoRows[0].birth).getFullYear() + '세' : '',
-          gender: userInfoRows[0].gender ? userInfoRows[0].gender === 'F' ? '여성' : '남성' : '',
-          height: userInfoRows[0].height ? userInfoRows[0].height + 'cm' : '',
-          weight: userInfoRows[0].weight ? userInfoRows[0].weight + 'kg' : '',
+          age: userInfoRows[0].birth ? new Date().getFullYear() - new Date(userInfoRows[0].birth).getFullYear() : '',
+          gender: userInfoRows[0].gender ? userInfoRows[0].gender : '',
+          height: userInfoRows[0].height ? userInfoRows[0].height : '',
+          weight: userInfoRows[0].weight ? userInfoRows[0].weight : '',
           activityId: userInfoRows[0].activityId ? userInfoRows[0].activityId : '',
+          loginType: 'kakao',
         },
         jwt: token,
         isSuccess: true,
@@ -263,7 +264,8 @@ exports.kakaoLogin = async function (req, res) {
         return res.json({
           userInfo: {
             nickname: userRows[0].nickname,
-            profileImageUrl: userRows[0].profileImageUrl
+            profileImageUrl: userRows[0].profileImageUrl,
+            loginType: 'kakao',
           },
           jwt: token,
           isSuccess: true,
@@ -340,7 +342,7 @@ exports.Nicknamecheck = async function (req, res) {
 
 exports.saveKakaoUserInfo = async function (req, res) {
   const {
-    body: { height, weight, gender, kidneyType, birth, activityId }, verifiedToken: {id}
+    body: { height, weight, gender, kidneyType, birth, activityId }, verifiedToken: { id }
   } = req;
 
   try {
@@ -367,4 +369,53 @@ exports.saveKakaoUserInfo = async function (req, res) {
     logger.error(`App - SignUp Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
+}
+
+exports.changePassword = async function (req, res) {
+  const {
+    body: { current, willBeChanged }, verifiedToken: { id }
+  } = req;
+
+  if (!willBeChanged) return res.json({ isSuccess: false, code: 304, message: "비밀번호를 입력 해주세요." });
+  if (willBeChanged.length < 6 || willBeChanged.length > 20) return res.json({
+    isSuccess: false,
+    code: 305,
+    message: "비밀번호는 6~20자리를 입력해주세요."
+  });
+
+  const hashedCurrentPassword = await crypto.createHash('sha512').update(current).digest('hex');
+
+  const [userInfoRows] = await userDao.findUserByUserId(id);
+
+  if (userInfoRows.length < 1) {
+    return res.json({
+      isSuccess: false,
+      code: 400,
+      message: "현재 패스워드를 확인해주세요."
+    });
+  } else {
+    if (userInfoRows[0].pw === hashedCurrentPassword) {
+      const hashedWillBeChangedPassword = await crypto.createHash('sha512').update(willBeChanged).digest('hex');
+      const [updatePasswordRow] = await userDao.updatePassword(hashedWillBeChangedPassword, id);
+
+      if (updatePasswordRow.affectedRows) {
+        return res.json({
+          isSuccess: true,
+          code: 200,
+          message: "패스워드 변경 성공",
+        });
+      } else {
+        return res.json({
+          isSuccess: false,
+          code: 400,
+          message: "패스워드 변경 실패",
+        });
+      }
+    }
+  }
+
+
+  // const hashedWillBeChangedPassword = await crypto.createHash('sha512').update(willBeChanged).digest('hex');
+
+
 }

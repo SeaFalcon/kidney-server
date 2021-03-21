@@ -67,7 +67,7 @@ async function selectUserInfo(email) {
   return [userInfoRows];
 }
 
-async function findUserById(id){
+async function findUserById(id) {
   const connection = await pool.getConnection(async (conn) => conn);
   const findUserByIdQuery = `
     SELECT *
@@ -82,7 +82,7 @@ async function findUserById(id){
 
   return [findUserByIdRows];
 }
-async function updateUserName(id, name){
+async function updateUserName(id, name) {
   const connection = await pool.getConnection(async (conn) => conn);
   const updateUserNameQuery = `
         UPDATE user SET name = ?
@@ -93,7 +93,7 @@ async function updateUserName(id, name){
     [name, id]
   );
   connection.release();
-  
+
   connection.log(updateUserNameRow);
   return updateUserNameRow;
 }
@@ -142,6 +142,37 @@ async function updateKakaoUserInfo(updateKakaoUserInfoParams) {
   return updateKakaoUserInfoRow;
 }
 
+async function findUserByUserId(id) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const findUserByIdQuery = `
+      SELECT *
+      FROM user
+      WHERE userId = ?;
+    `;
+  let findUserByIdParams = [id];
+  const [findUserByIdRows] = await connection.query(
+    findUserByIdQuery,
+    findUserByIdParams
+  );
+
+  return [findUserByIdRows];
+}
+
+async function updatePassword(newPassword, id) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const updatePasswordQuery = `
+        UPDATE user SET pw = ?
+        WHERE userId = ?
+    `;
+  const updatePasswordRow = await connection.query(
+    updatePasswordQuery,
+    [newPassword, id]
+  );
+  connection.release();
+  return updatePasswordRow;
+}
+
+
 module.exports = {
   userEmailCheck,
   userNicknameCheck,
@@ -150,5 +181,7 @@ module.exports = {
   findUserById,
   findUserByKakaoId,
   insertKakaoUser,
-  updateKakaoUserInfo
+  updateKakaoUserInfo,
+  findUserByUserId,
+  updatePassword
 };
