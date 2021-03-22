@@ -428,17 +428,56 @@ exports.changeWeight = async function (req, res) {
 
   console.log(weight)
 
-  if (!weight) return res.json({ isSuccess: false, code: 304, message: "체중을 입력 해주세요." });
+  if (!weight) return res.json({ isSuccess: false, code: 304, message: "건강상태를 입력 해주세요." });
   if (!typeof weight === 'number') return res.json({
     isSuccess: false,
     code: 305,
-    message: "몸무게는 숫자만 입력해주세요."
+    message: "건강상태는 숫자만 입력해주세요."
   });
 
   try {
     const [updateWeight] = await userDao.updateWeight(weight, id);
 
     if (updateWeight.affectedRows) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "건강상태 변경 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "건강상태 변경 실패",
+      });
+    }
+
+  } catch (e) {
+    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+
+}
+
+
+exports.changeKidneyType = async function (req, res) {
+  const {
+    body: { kidneyType }, verifiedToken: { id }
+  } = req;
+
+  console.log(kidneyType)
+
+  if (!kidneyType) return res.json({ isSuccess: false, code: 304, message: "을 입력 해주세요." });
+  if (!typeof kidneyType === 'number') return res.json({
+    isSuccess: false,
+    code: 305,
+    message: "몸무게는 숫자만 입력해주세요."
+  });
+
+  try {
+    const [updateKidneyType] = await userDao.updateKidneyType(kidneyType, id);
+
+    if (updateKidneyType.affectedRows) {
       return res.json({
         isSuccess: true,
         code: 200,

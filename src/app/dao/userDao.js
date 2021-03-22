@@ -186,6 +186,20 @@ async function updateWeight(newWeight, id) {
   return updateWeightRow;
 }
 
+async function updateKidneyType(newKidneyType, id) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const updateKidneyTypeQuery = `
+        UPDATE user SET kidneyDiseaseTypeId = ?
+        WHERE userId = ?
+    `;
+  const updateKidneyTypeRow = await connection.query(
+    updateKidneyTypeQuery,
+    [newKidneyType, id]
+  );
+  connection.release();
+  return updateKidneyTypeRow;
+}
+
 
 module.exports = {
   userEmailCheck,
@@ -198,5 +212,6 @@ module.exports = {
   updateKakaoUserInfo,
   findUserByUserId,
   updatePassword,
-  updateWeight
+  updateWeight,
+  updateKidneyType
 };
