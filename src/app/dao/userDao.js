@@ -172,6 +172,20 @@ async function updatePassword(newPassword, id) {
   return updatePasswordRow;
 }
 
+async function updateWeight(newWeight, id) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const updateWeightQuery = `
+        UPDATE user SET weight = ?
+        WHERE userId = ?
+    `;
+  const updateWeightRow = await connection.query(
+    updateWeightQuery,
+    [newWeight, id]
+  );
+  connection.release();
+  return updateWeightRow;
+}
+
 
 module.exports = {
   userEmailCheck,
@@ -183,5 +197,6 @@ module.exports = {
   insertKakaoUser,
   updateKakaoUserInfo,
   findUserByUserId,
-  updatePassword
+  updatePassword,
+  updateWeight
 };

@@ -383,39 +383,78 @@ exports.changePassword = async function (req, res) {
     message: "비밀번호는 6~20자리를 입력해주세요."
   });
 
-  const hashedCurrentPassword = await crypto.createHash('sha512').update(current).digest('hex');
+  try {
 
-  const [userInfoRows] = await userDao.findUserByUserId(id);
+    const hashedCurrentPassword = await crypto.createHash('sha512').update(current).digest('hex');
 
-  if (userInfoRows.length < 1) {
-    return res.json({
-      isSuccess: false,
-      code: 400,
-      message: "현재 패스워드를 확인해주세요."
-    });
-  } else {
-    if (userInfoRows[0].pw === hashedCurrentPassword) {
-      const hashedWillBeChangedPassword = await crypto.createHash('sha512').update(willBeChanged).digest('hex');
-      const [updatePasswordRow] = await userDao.updatePassword(hashedWillBeChangedPassword, id);
+    const [userInfoRows] = await userDao.findUserByUserId(id);
 
-      if (updatePasswordRow.affectedRows) {
-        return res.json({
-          isSuccess: true,
-          code: 200,
-          message: "패스워드 변경 성공",
-        });
-      } else {
-        return res.json({
-          isSuccess: false,
-          code: 400,
-          message: "패스워드 변경 실패",
-        });
+    if (userInfoRows.length < 1) {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "현재 패스워드를 확인해주세요."
+      });
+    } else {
+      if (userInfoRows[0].pw === hashedCurrentPassword) {
+        const hashedWillBeChangedPassword = await crypto.createHash('sha512').update(willBeChanged).digest('hex');
+        const [updatePasswordRow] = await userDao.updatePassword(hashedWillBeChangedPassword, id);
+
+        if (updatePasswordRow.affectedRows) {
+          return res.json({
+            isSuccess: true,
+            code: 200,
+            message: "패스워드 변경 성공",
+          });
+        } else {
+          return res.json({
+            isSuccess: false,
+            code: 400,
+            message: "패스워드 변경 실패",
+          });
+        }
       }
     }
+  } catch (e) {
+    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
   }
+}
 
+exports.changeWeight = async function (req, res) {
+  const {
+    body: { weight }, verifiedToken: { id }
+  } = req;
 
-  // const hashedWillBeChangedPassword = await crypto.createHash('sha512').update(willBeChanged).digest('hex');
+  console.log(weight)
 
+  if (!weight) return res.json({ isSuccess: false, code: 304, message: "체중을 입력 해주세요." });
+  if (!typeof weight === 'number') return res.json({
+    isSuccess: false,
+    code: 305,
+    message: "몸무게는 숫자만 입력해주세요."
+  });
+
+  try {
+    const [updateWeight] = await userDao.updateWeight(weight, id);
+
+    if (updateWeight.affectedRows) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "몸무게 변경 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "몸무게 변경 실패",
+      });
+    }
+
+  } catch (e) {
+    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
 
 }
