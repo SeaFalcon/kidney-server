@@ -495,5 +495,78 @@ exports.changeKidneyType = async function (req, res) {
     logger.error(`App - SignUp Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
+};
 
-}
+exports.changeKidneyType = async function (req, res) {
+  const {
+    body: { kidneyType }, verifiedToken: { id }
+  } = req;
+
+  console.log(kidneyType)
+
+  if (!kidneyType) return res.json({ isSuccess: false, code: 304, message: "을 입력 해주세요." });
+  if (!typeof kidneyType === 'number') return res.json({
+    isSuccess: false,
+    code: 305,
+    message: "몸무게는 숫자만 입력해주세요."
+  });
+
+  try {
+    const [updateKidneyType] = await userDao.updateKidneyType(kidneyType, id);
+
+    if (updateKidneyType.affectedRows) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "몸무게 변경 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "몸무게 변경 실패",
+      });
+    }
+
+  } catch (e) {
+    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+};
+
+exports.changeActivityId = async function (req, res) {
+  const {
+    body: { activityId }, verifiedToken: { id }
+  } = req;
+
+  console.log(activityId)
+
+  if (!activityId) return res.json({ isSuccess: false, code: 304, message: "활동수준을 입력 해주세요." });
+  if (!typeof activityId === 'number') return res.json({
+    isSuccess: false,
+    code: 305,
+    message: "활동수준은 숫자만 입력해주세요."
+  });
+
+  try {
+    const [updateActivityId] = await userDao.updateActivityId(activityId, id);
+
+    if (updateActivityId.affectedRows) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "활동수준 변경 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "활동수준 변경 실패",
+      });
+    }
+
+  } catch (e) {
+    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+};

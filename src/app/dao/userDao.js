@@ -200,6 +200,20 @@ async function updateKidneyType(newKidneyType, id) {
   return updateKidneyTypeRow;
 }
 
+async function updateActivityId(newActivityId, id) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const updateActivityIdQuery = `
+        UPDATE user SET activityId = ?
+        WHERE userId = ?
+    `;
+  const updateActivityIdRow = await connection.query(
+    updateActivityIdQuery,
+    [newActivityId, id]
+  );
+  connection.release();
+  return updateActivityIdRow;
+}
+
 
 module.exports = {
   userEmailCheck,
@@ -213,5 +227,6 @@ module.exports = {
   findUserByUserId,
   updatePassword,
   updateWeight,
-  updateKidneyType
+  updateKidneyType,
+  updateActivityId
 };
