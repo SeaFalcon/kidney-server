@@ -162,6 +162,7 @@ exports.signIn = async function (req, res) {
 
     res.json({
       userInfo: {
+        id: userInfoRows[0].userId,
         email: userInfoRows[0].email,
         nickname: userInfoRows[0].nickname,
         kidneyType: userInfoRows[0].kidneyDiseaseTypeId,
@@ -231,6 +232,7 @@ exports.kakaoLogin = async function (req, res) {
           email,
           nickname,
           profileImageUrl,
+          id: userInfoRows[0].userId,
           kidneyType: userInfoRows[0].kidneyDiseaseTypeId ? userInfoRows[0].kidneyDiseaseTypeId : '',
           age: userInfoRows[0].birth ? new Date().getFullYear() - new Date(userInfoRows[0].birth).getFullYear() : '',
           gender: userInfoRows[0].gender ? userInfoRows[0].gender : '',
@@ -263,6 +265,7 @@ exports.kakaoLogin = async function (req, res) {
 
         return res.json({
           userInfo: {
+            id: userInfoRows[0].userId,
             nickname: userRows[0].nickname,
             profileImageUrl: userRows[0].profileImageUrl,
             loginType: 'kakao',
@@ -276,7 +279,7 @@ exports.kakaoLogin = async function (req, res) {
 
     }
 
-  } catch (e) {
+  } catch (err) {
     console.log(e);
     res.json({ code: 400, message: '카카오 회원가입 및 로그인 실패' });
   }
@@ -415,7 +418,7 @@ exports.changePassword = async function (req, res) {
         }
       }
     }
-  } catch (e) {
+  } catch (err) {
     logger.error(`App - SignUp Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
@@ -428,17 +431,93 @@ exports.changeWeight = async function (req, res) {
 
   console.log(weight)
 
-  if (!weight) return res.json({ isSuccess: false, code: 304, message: "건강상태를 입력 해주세요." });
+  if (!weight) return res.json({ isSuccess: false, code: 304, message: "몸무게를 입력 해주세요." });
   if (!typeof weight === 'number') return res.json({
     isSuccess: false,
     code: 305,
-    message: "건강상태는 숫자만 입력해주세요."
+    message: "몸무게는 숫자만 입력해주세요."
   });
 
   try {
     const [updateWeight] = await userDao.updateWeight(weight, id);
 
     if (updateWeight.affectedRows) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "몸무게 변경 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "몸무게 변경 실패",
+      });
+    }
+
+  } catch (err) {
+    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+
+}
+
+
+exports.changeKidneyType = async function (req, res) {
+  const {
+    body: { kidneyType }, verifiedToken: { id }
+  } = req;
+
+  console.log(kidneyType)
+
+  if (!kidneyType) return res.json({ isSuccess: false, code: 304, message: "몸무게를 입력 해주세요." });
+  if (!typeof kidneyType === 'number') return res.json({
+    isSuccess: false,
+    code: 305,
+    message: "몸무게는 숫자만 입력해주세요."
+  });
+
+  try {
+    const [updateKidneyType] = await userDao.updateKidneyType(kidneyType, id);
+
+    if (updateKidneyType.affectedRows) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "몸무게 변경 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "몸무게 변경 실패",
+      });
+    }
+
+  } catch (err) {
+    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+};
+
+exports.changeKidneyType = async function (req, res) {
+  const {
+    body: { kidneyType }, verifiedToken: { id }
+  } = req;
+
+  console.log(kidneyType)
+
+  if (!kidneyType) return res.json({ isSuccess: false, code: 304, message: "건강상태를 입력 해주세요." });
+  if (!typeof kidneyType === 'number') return res.json({
+    isSuccess: false,
+    code: 305,
+    message: "건강상태는 숫자만 입력해주세요."
+  });
+
+  try {
+    const [updateKidneyType] = await userDao.updateKidneyType(kidneyType, id);
+
+    if (updateKidneyType.affectedRows) {
       return res.json({
         isSuccess: true,
         code: 200,
@@ -452,83 +531,7 @@ exports.changeWeight = async function (req, res) {
       });
     }
 
-  } catch (e) {
-    logger.error(`App - SignUp Query error\n: ${err.message}`);
-    return res.status(500).send(`Error: ${err.message}`);
-  }
-
-}
-
-
-exports.changeKidneyType = async function (req, res) {
-  const {
-    body: { kidneyType }, verifiedToken: { id }
-  } = req;
-
-  console.log(kidneyType)
-
-  if (!kidneyType) return res.json({ isSuccess: false, code: 304, message: "을 입력 해주세요." });
-  if (!typeof kidneyType === 'number') return res.json({
-    isSuccess: false,
-    code: 305,
-    message: "몸무게는 숫자만 입력해주세요."
-  });
-
-  try {
-    const [updateKidneyType] = await userDao.updateKidneyType(kidneyType, id);
-
-    if (updateKidneyType.affectedRows) {
-      return res.json({
-        isSuccess: true,
-        code: 200,
-        message: "몸무게 변경 성공",
-      });
-    } else {
-      return res.json({
-        isSuccess: false,
-        code: 400,
-        message: "몸무게 변경 실패",
-      });
-    }
-
-  } catch (e) {
-    logger.error(`App - SignUp Query error\n: ${err.message}`);
-    return res.status(500).send(`Error: ${err.message}`);
-  }
-};
-
-exports.changeKidneyType = async function (req, res) {
-  const {
-    body: { kidneyType }, verifiedToken: { id }
-  } = req;
-
-  console.log(kidneyType)
-
-  if (!kidneyType) return res.json({ isSuccess: false, code: 304, message: "을 입력 해주세요." });
-  if (!typeof kidneyType === 'number') return res.json({
-    isSuccess: false,
-    code: 305,
-    message: "몸무게는 숫자만 입력해주세요."
-  });
-
-  try {
-    const [updateKidneyType] = await userDao.updateKidneyType(kidneyType, id);
-
-    if (updateKidneyType.affectedRows) {
-      return res.json({
-        isSuccess: true,
-        code: 200,
-        message: "몸무게 변경 성공",
-      });
-    } else {
-      return res.json({
-        isSuccess: false,
-        code: 400,
-        message: "몸무게 변경 실패",
-      });
-    }
-
-  } catch (e) {
+  } catch (err) {
     logger.error(`App - SignUp Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
@@ -565,8 +568,48 @@ exports.changeActivityId = async function (req, res) {
       });
     }
 
-  } catch (e) {
+  } catch (err) {
     logger.error(`App - SignUp Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
 };
+
+exports.getUserById = async function (req, res) {
+  const { id } = req.params;
+
+  console.log(id);
+
+  try {
+    const [userRow] = await userDao.findUserByUserId(id);
+
+    if (userRow) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "유저정보 가져오기 성공",
+        userInfo: {
+          id: userRow[0].userId,
+          email: userRow[0].email,
+          nickname: userRow[0].nickname,
+          kidneyType: userRow[0].kidneyDiseaseTypeId,
+          age: new Date().getFullYear() - new Date(userRow[0].birth).getFullYear(),
+          gender: userRow[0].gender,
+          height: userRow[0].height,
+          weight: userRow[0].weight,
+          activityId: userRow[0].activityId,
+          profileImageUrl: userRow[0].profileImageUrl,
+        }
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "유저정보 가져오기 실패",
+      });
+    }
+
+  } catch (err) {
+    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+}

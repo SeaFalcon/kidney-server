@@ -20,4 +20,6 @@ module.exports = function(app){
     app.patch('/user/weight', jwtMiddleware, user.changeWeight);
     app.patch('/user/kidneyType', jwtMiddleware, user.changeKidneyType);
     app.patch('/user/activityId', jwtMiddleware, user.changeActivityId);
+
+    app.get('/user/:id', jwtMiddleware, user.getUserById);
 };
