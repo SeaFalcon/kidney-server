@@ -255,24 +255,20 @@ async function updateActivityId(newActivityId, id) {
   return updateActivityIdRow;
 }
 
-<<<<<<< Updated upstream
-async function updateBasicInfo(basicInfoParams, id){
+async function updateBasicInfo(basicInfoParams, id) {
   const connection = await pool.getConnection(async (conn) => conn);
   const updateBasicInfoQuery = `
         UPDATE user SET weight = ?, kidneyDiseaseTypeId = ?, activityId = ?
         WHERE userId = ?
     `;
-  const updateBasicInfoRow = await connection.query(
-    updateBasicInfoQuery,
-    [...basicInfoParams, id]
-  );
+  const updateBasicInfoRow = await connection.query(updateBasicInfoQuery, [
+    ...basicInfoParams,
+    id,
+  ]);
   connection.release();
   return updateBasicInfoRow;
 }
 
-
-=======
->>>>>>> Stashed changes
 module.exports = {
   userEmailCheck,
   userNicknameCheck,
@@ -287,11 +283,8 @@ module.exports = {
   updateWeight,
   updateKidneyType,
   updateActivityId,
-<<<<<<< Updated upstream
   updateBasicInfo,
-=======
   selectActivity,
   selectKidney,
   insertuserrequirednuturition,
->>>>>>> Stashed changes
 };

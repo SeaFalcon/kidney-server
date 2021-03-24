@@ -94,10 +94,6 @@ exports.signUp = async function (req, res) {
       });
     }
 
-<<<<<<< Updated upstream
-    const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
-    const insertUserInfoParams = [email, hashedPassword, nickname, height, weight, gender, kidneyType, birth, activityId]//, nickname];
-=======
     // TRANSACTION : advanced
     // await connection.beginTransaction(); // START TRANSACTION
     const hashedPassword = await crypto
@@ -211,7 +207,6 @@ exports.signUp = async function (req, res) {
           ? Calc.unnomalprotein(gender, age)
           : Calc.nomalprotein(gender)),
     ];
->>>>>>> Stashed changes
 
     const insertUserRows = await userDao.insertUserInfo(insertUserInfoParams);
     const inserNutritionRows = await userDao.insertuserrequirednuturition(
@@ -320,20 +315,6 @@ exports.signIn = async function (req, res) {
     res.json({
       userInfo: {
         id: userInfoRows[0].userId,
-<<<<<<< Updated upstream
-=======
-        email: userInfoRows[0].email,
-        nickname: userInfoRows[0].nickname,
-        kidneyType: userInfoRows[0].kidneyDiseaseTypeId,
-        age:
-          new Date().getFullYear() -
-          new Date(userInfoRows[0].birth).getFullYear(),
-        gender: userInfoRows[0].gender,
-        height: userInfoRows[0].height,
-        weight: userInfoRows[0].weight,
-        activityId: userInfoRows[0].activityId,
-        profileImageUrl: userInfoRows[0].profileImageUrl,
->>>>>>> Stashed changes
       },
       jwt: token,
       isSuccess: true,
@@ -401,23 +382,6 @@ exports.kakaoLogin = async function (req, res) {
       return res.json({
         userInfo: {
           id: userInfoRows[0].userId,
-<<<<<<< Updated upstream
-=======
-          kidneyType: userInfoRows[0].kidneyDiseaseTypeId
-            ? userInfoRows[0].kidneyDiseaseTypeId
-            : "",
-          age: userInfoRows[0].birth
-            ? new Date().getFullYear() -
-              new Date(userInfoRows[0].birth).getFullYear()
-            : "",
-          gender: userInfoRows[0].gender ? userInfoRows[0].gender : "",
-          height: userInfoRows[0].height ? userInfoRows[0].height : "",
-          weight: userInfoRows[0].weight ? userInfoRows[0].weight : "",
-          activityId: userInfoRows[0].activityId
-            ? userInfoRows[0].activityId
-            : "",
-          loginType: "kakao",
->>>>>>> Stashed changes
         },
         jwt: token,
         isSuccess: true,
@@ -426,15 +390,12 @@ exports.kakaoLogin = async function (req, res) {
       });
       // 회원가입
     } else {
-<<<<<<< Updated upstream
-      const [insertResult] = await userDao.insertKakaoUser(email, nickname, profileImageUrl, kakaoId);
-=======
       const [insertResult] = await userDao.insertKakaoUser(
+        email,
         nickname,
         profileImageUrl,
         kakaoId
       );
->>>>>>> Stashed changes
 
       if (insertResult.insertId) {
         const [userRows] = await userDao.findUserByKakaoId(kakaoId);
@@ -452,17 +413,10 @@ exports.kakaoLogin = async function (req, res) {
 
         return res.json({
           userInfo: {
-<<<<<<< Updated upstream
             id: userRows[0].userId,
             // nickname: userRows[0].nickname,
             // profileImageUrl: userRows[0].profileImageUrl,
             // loginType: 'kakao',
-=======
-            id: userInfoRows[0].userId,
-            nickname: userRows[0].nickname,
-            profileImageUrl: userRows[0].profileImageUrl,
-            loginType: "kakao",
->>>>>>> Stashed changes
           },
           jwt: token,
           isSuccess: true,
@@ -473,11 +427,7 @@ exports.kakaoLogin = async function (req, res) {
     }
   } catch (err) {
     console.log(err);
-<<<<<<< Updated upstream
-    res.json({ code: 400, message: '카카오 회원가입 및 로그인 실패' });
-=======
     res.json({ code: 400, message: "카카오 회원가입 및 로그인 실패" });
->>>>>>> Stashed changes
   }
 };
 //이메일 중복체크 버튼 클릭 API
@@ -642,40 +592,13 @@ exports.changePassword = async function (req, res) {
   }
 };
 
-exports.changeBasicInfo = async function(req, res){
+exports.changeBasicInfo = async function (req, res) {
   const {
-<<<<<<< Updated upstream
-    body: { weight, kidneyType, activityId }, verifiedToken: { id }
-  } = req;
-
-  console.log(weight, kidneyType, activityId);
-
-  if (!weight) return res.json({ isSuccess: false, code: 304, message: "몸무게를 입력 해주세요." });
-  if (!typeof weight === 'number') return res.json({
-    isSuccess: false,
-    code: 400,
-    message: "몸무게는 숫자만 입력해주세요."
-  });
-
-  if (!kidneyType) return res.json({ isSuccess: false, code: 304, message: "건강상태를 입력 해주세요." });
-  if (!typeof kidneyType === 'number') return res.json({
-    isSuccess: false,
-    code: 400,
-    message: "건강상태는 숫자만 입력해주세요."
-  });
-
-  if (!activityId) return res.json({ isSuccess: false, code: 304, message: "활동수준을 입력 해주세요." });
-  if (!typeof activityId === 'number') return res.json({
-    isSuccess: false,
-    code: 400,
-    message: "활동수준은 숫자만 입력해주세요."
-  });
-=======
-    body: { weight },
+    body: { weight, kidneyType, activityId },
     verifiedToken: { id },
   } = req;
 
-  console.log(weight);
+  console.log(weight, kidneyType, activityId);
 
   if (!weight)
     return res.json({
@@ -686,82 +609,9 @@ exports.changeBasicInfo = async function(req, res){
   if (!typeof weight === "number")
     return res.json({
       isSuccess: false,
-      code: 305,
+      code: 400,
       message: "몸무게는 숫자만 입력해주세요.",
     });
-
-  try {
-    const [updateWeight] = await userDao.updateWeight(weight, id);
-
-    if (updateWeight.affectedRows) {
-      return res.json({
-        isSuccess: true,
-        code: 200,
-        message: "몸무게 변경 성공",
-      });
-    } else {
-      return res.json({
-        isSuccess: false,
-        code: 400,
-        message: "몸무게 변경 실패",
-      });
-    }
-  } catch (err) {
-    logger.error(`App - SignUp Query error\n: ${err.message}`);
-    return res.status(500).send(`Error: ${err.message}`);
-  }
-};
-
-exports.changeKidneyType = async function (req, res) {
-  const {
-    body: { kidneyType },
-    verifiedToken: { id },
-  } = req;
-
-  console.log(kidneyType);
-
-  if (!kidneyType)
-    return res.json({
-      isSuccess: false,
-      code: 304,
-      message: "몸무게를 입력 해주세요.",
-    });
-  if (!typeof kidneyType === "number")
-    return res.json({
-      isSuccess: false,
-      code: 305,
-      message: "몸무게는 숫자만 입력해주세요.",
-    });
-
-  try {
-    const [updateKidneyType] = await userDao.updateKidneyType(kidneyType, id);
-
-    if (updateKidneyType.affectedRows) {
-      return res.json({
-        isSuccess: true,
-        code: 200,
-        message: "몸무게 변경 성공",
-      });
-    } else {
-      return res.json({
-        isSuccess: false,
-        code: 400,
-        message: "몸무게 변경 실패",
-      });
-    }
-  } catch (err) {
-    logger.error(`App - SignUp Query error\n: ${err.message}`);
-    return res.status(500).send(`Error: ${err.message}`);
-  }
-};
-
-exports.changeKidneyType = async function (req, res) {
-  const {
-    body: { kidneyType },
-    verifiedToken: { id },
-  } = req;
-
-  console.log(kidneyType);
 
   if (!kidneyType)
     return res.json({
@@ -772,39 +622,9 @@ exports.changeKidneyType = async function (req, res) {
   if (!typeof kidneyType === "number")
     return res.json({
       isSuccess: false,
-      code: 305,
+      code: 400,
       message: "건강상태는 숫자만 입력해주세요.",
     });
-
-  try {
-    const [updateKidneyType] = await userDao.updateKidneyType(kidneyType, id);
-
-    if (updateKidneyType.affectedRows) {
-      return res.json({
-        isSuccess: true,
-        code: 200,
-        message: "건강상태 변경 성공",
-      });
-    } else {
-      return res.json({
-        isSuccess: false,
-        code: 400,
-        message: "건강상태 변경 실패",
-      });
-    }
-  } catch (err) {
-    logger.error(`App - SignUp Query error\n: ${err.message}`);
-    return res.status(500).send(`Error: ${err.message}`);
-  }
-};
-
-exports.changeActivityId = async function (req, res) {
-  const {
-    body: { activityId },
-    verifiedToken: { id },
-  } = req;
-
-  console.log(activityId);
 
   if (!activityId)
     return res.json({
@@ -815,13 +635,15 @@ exports.changeActivityId = async function (req, res) {
   if (!typeof activityId === "number")
     return res.json({
       isSuccess: false,
-      code: 305,
+      code: 400,
       message: "활동수준은 숫자만 입력해주세요.",
     });
->>>>>>> Stashed changes
 
   try {
-    const [updateBasicInfoRow] = await userDao.updateBasicInfo([weight, kidneyType, activityId], id);
+    const [updateBasicInfoRow] = await userDao.updateBasicInfo(
+      [weight, kidneyType, activityId],
+      id
+    );
 
     if (updateBasicInfoRow.affectedRows) {
       return res.json({
@@ -840,7 +662,7 @@ exports.changeActivityId = async function (req, res) {
     logger.error(`App - SignUp Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
-}
+};
 
 exports.getMyInfo = async function (req, res) {
   const { id } = req.verifiedToken;
@@ -855,7 +677,7 @@ exports.getMyInfo = async function (req, res) {
         isSuccess: true,
         code: 200,
         message: "유저정보 가져오기 성공",
-        isKakaoUser: userRow[0].kakaoId ? true : false, 
+        isKakaoUser: userRow[0].kakaoId ? true : false,
         userInfo: {
           id: userRow[0].userId,
           email: userRow[0].email,
@@ -881,9 +703,4 @@ exports.getMyInfo = async function (req, res) {
     logger.error(`App - SignUp Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
-<<<<<<< Updated upstream
-}
-
-=======
 };
->>>>>>> Stashed changes
