@@ -17,9 +17,8 @@ module.exports = function(app){
     app.post('/user/kakao', jwtMiddleware, user.saveKakaoUserInfo)
 
     app.patch('/user/password', jwtMiddleware, user.changePassword);
-    app.patch('/user/weight', jwtMiddleware, user.changeWeight);
-    app.patch('/user/kidneyType', jwtMiddleware, user.changeKidneyType);
-    app.patch('/user/activityId', jwtMiddleware, user.changeActivityId);
+    
+    app.put('/user', jwtMiddleware, user.changeBasicInfo);
 
-    app.get('/user/:id', jwtMiddleware, user.getUserById);
+    app.get('/me', jwtMiddleware, user.getMyInfo);
 };

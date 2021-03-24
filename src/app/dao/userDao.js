@@ -114,15 +114,15 @@ async function findUserByKakaoId(kakaoId) {
   return [userInfoRows];
 }
 
-async function insertKakaoUser(nickname, profileImageUrl, kakaoId) {
+async function insertKakaoUser(email, nickname, profileImageUrl, kakaoId) {
   const connection = await pool.getConnection(async (conn) => conn);
   const insertUserInfoByKakaoIdQuery = `
-        INSERT INTO user (nickname, profileImageUrl, kakaoId)
-        VALUES (?, ?, ?);
+        INSERT INTO user (email, nickname, profileImageUrl, kakaoId)
+        VALUES (?, ?, ?, ?);
     `;
   const insertUserInfoByKakaoIdRow = await connection.query(
     insertUserInfoByKakaoIdQuery,
-    [nickname, profileImageUrl, kakaoId]
+    [email, nickname, profileImageUrl, kakaoId]
   );
   connection.release();
   return insertUserInfoByKakaoIdRow;
@@ -214,6 +214,20 @@ async function updateActivityId(newActivityId, id) {
   return updateActivityIdRow;
 }
 
+async function updateBasicInfo(basicInfoParams, id){
+  const connection = await pool.getConnection(async (conn) => conn);
+  const updateBasicInfoQuery = `
+        UPDATE user SET weight = ?, kidneyDiseaseTypeId = ?, activityId = ?
+        WHERE userId = ?
+    `;
+  const updateBasicInfoRow = await connection.query(
+    updateBasicInfoQuery,
+    [...basicInfoParams, id]
+  );
+  connection.release();
+  return updateBasicInfoRow;
+}
+
 
 module.exports = {
   userEmailCheck,
@@ -228,5 +242,6 @@ module.exports = {
   updatePassword,
   updateWeight,
   updateKidneyType,
-  updateActivityId
+  updateActivityId,
+  updateBasicInfo,
 };
