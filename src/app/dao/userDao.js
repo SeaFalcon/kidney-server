@@ -48,7 +48,51 @@ async function insertUserInfo(insertUserInfoParams) {
   return insertUserInfoRow;
 }
 
+async function insertuserrequirednuturition(userrequirednuturitionParams) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const userrequirednuturitionQuery = `
+        INSERT into userrequirednuturition (requiredCalorie, requiredPhosphorus, requiredSodium, requiredPotassium, requiredProtein)
+        VALUES (?, ?, ?, ?, ?);
+    `;
+  const userrequirednuturitionRow = await connection.query(
+    userrequirednuturitionQuery,
+    userrequirednuturitionParams
+  );
+  connection.release();
+  return userrequirednuturitionRow;
+}
 
+async function selectActivity(activityId) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const selectActivityQuery = `
+      SELECT *
+      FROM activity
+      WHERE activityId = ?;
+      `;
+
+  let selectActivityParams = [activityId];
+  const [activityRows] = await connection.query(
+    selectActivityQuery,
+    selectActivityParams
+  );
+  return [activityRows];
+}
+
+async function selectKidney(kidneyType) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const selectKidneyQuery = `
+      SELECT *
+      FROM kidneytype
+      WHERE kidneyId = ?;
+      `;
+
+  let selectKidneyParams = [kidneyType];
+  const [kidneyTypeRows] = await connection.query(
+    selectKidneyQuery,
+    selectKidneyParams
+  );
+  return kidneyTypeRows;
+}
 
 //SignIn
 async function selectUserInfo(email) {
@@ -88,10 +132,10 @@ async function updateUserName(id, name) {
         UPDATE user SET name = ?
         WHERE userID = ?
   `;
-  const updateUserNameRow = await connection.query(
-    updateUserNameQuery,
-    [name, id]
-  );
+  const updateUserNameRow = await connection.query(updateUserNameQuery, [
+    name,
+    id,
+  ]);
   connection.release();
 
   connection.log(updateUserNameRow);
@@ -107,10 +151,7 @@ async function findUserByKakaoId(kakaoId) {
                 `;
 
   let userInfoParams = [kakaoId];
-  const [userInfoRows] = await connection.query(
-    userInfoQuery,
-    userInfoParams
-  );
+  const [userInfoRows] = await connection.query(userInfoQuery, userInfoParams);
   return [userInfoRows];
 }
 
@@ -164,10 +205,10 @@ async function updatePassword(newPassword, id) {
         UPDATE user SET pw = ?
         WHERE userId = ?
     `;
-  const updatePasswordRow = await connection.query(
-    updatePasswordQuery,
-    [newPassword, id]
-  );
+  const updatePasswordRow = await connection.query(updatePasswordQuery, [
+    newPassword,
+    id,
+  ]);
   connection.release();
   return updatePasswordRow;
 }
@@ -178,10 +219,10 @@ async function updateWeight(newWeight, id) {
         UPDATE user SET weight = ?
         WHERE userId = ?
     `;
-  const updateWeightRow = await connection.query(
-    updateWeightQuery,
-    [newWeight, id]
-  );
+  const updateWeightRow = await connection.query(updateWeightQuery, [
+    newWeight,
+    id,
+  ]);
   connection.release();
   return updateWeightRow;
 }
@@ -192,10 +233,10 @@ async function updateKidneyType(newKidneyType, id) {
         UPDATE user SET kidneyDiseaseTypeId = ?
         WHERE userId = ?
     `;
-  const updateKidneyTypeRow = await connection.query(
-    updateKidneyTypeQuery,
-    [newKidneyType, id]
-  );
+  const updateKidneyTypeRow = await connection.query(updateKidneyTypeQuery, [
+    newKidneyType,
+    id,
+  ]);
   connection.release();
   return updateKidneyTypeRow;
 }
@@ -206,14 +247,15 @@ async function updateActivityId(newActivityId, id) {
         UPDATE user SET activityId = ?
         WHERE userId = ?
     `;
-  const updateActivityIdRow = await connection.query(
-    updateActivityIdQuery,
-    [newActivityId, id]
-  );
+  const updateActivityIdRow = await connection.query(updateActivityIdQuery, [
+    newActivityId,
+    id,
+  ]);
   connection.release();
   return updateActivityIdRow;
 }
 
+<<<<<<< Updated upstream
 async function updateBasicInfo(basicInfoParams, id){
   const connection = await pool.getConnection(async (conn) => conn);
   const updateBasicInfoQuery = `
@@ -229,6 +271,8 @@ async function updateBasicInfo(basicInfoParams, id){
 }
 
 
+=======
+>>>>>>> Stashed changes
 module.exports = {
   userEmailCheck,
   userNicknameCheck,
@@ -243,5 +287,11 @@ module.exports = {
   updateWeight,
   updateKidneyType,
   updateActivityId,
+<<<<<<< Updated upstream
   updateBasicInfo,
+=======
+  selectActivity,
+  selectKidney,
+  insertuserrequirednuturition,
+>>>>>>> Stashed changes
 };

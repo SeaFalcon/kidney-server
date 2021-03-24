@@ -1,14 +1,14 @@
-const { pool } = require('../../../config/database');
-const { logger } = require('../../../config/winston');
+const { pool } = require("../../../config/database");
+const { logger } = require("../../../config/winston");
 
-const axios = require('axios').default;
+const axios = require("axios").default;
 
-const jwt = require('jsonwebtoken');
-const regexEmail = require('regex-email');
-const crypto = require('crypto');
-const secret_config = require('../../../config/secret');
+const jwt = require("jsonwebtoken");
+const regexEmail = require("regex-email");
+const crypto = require("crypto");
+const secret_config = require("../../../config/secret");
 
-const userDao = require('../dao/userDao');
+const userDao = require("../dao/userDao");
 
 /**
  update : 2020.10.4
@@ -16,45 +16,72 @@ const userDao = require('../dao/userDao');
  */
 exports.signUp = async function (req, res) {
   const {
-    email, password, nickname, height, weight, gender, kidneyType, birth, activityId //, nickname
+    email,
+    password,
+    nickname,
+    height,
+    weight,
+    gender,
+    kidneyType,
+    birth,
+    activityId, //, nickname
   } = req.body;
 
   console.log(req.body);
-  if (!email) return res.json({ isSuccess: false, code: 301, message: "이메일을 입력해주세요." });
-  if (email.length > 30) return res.json({
-    isSuccess: false,
-    code: 302,
-    message: "이메일은 30자리 미만으로 입력해주세요."
-  });
+  if (!email)
+    return res.json({
+      isSuccess: false,
+      code: 301,
+      message: "이메일을 입력해주세요.",
+    });
+  if (email.length > 30)
+    return res.json({
+      isSuccess: false,
+      code: 302,
+      message: "이메일은 30자리 미만으로 입력해주세요.",
+    });
 
-  if (!regexEmail.test(email)) return res.json({ isSuccess: false, code: 303, message: "이메일을 형식을 정확하게 입력해주세요." });
+  if (!regexEmail.test(email))
+    return res.json({
+      isSuccess: false,
+      code: 303,
+      message: "이메일을 형식을 정확하게 입력해주세요.",
+    });
 
-  if (!password) return res.json({ isSuccess: false, code: 304, message: "비밀번호를 입력 해주세요." });
-  if (password.length < 6 || password.length > 20) return res.json({
-    isSuccess: false,
-    code: 305,
-    message: "비밀번호는 6~20자리를 입력해주세요."
-  });
+  if (!password)
+    return res.json({
+      isSuccess: false,
+      code: 304,
+      message: "비밀번호를 입력 해주세요.",
+    });
+  if (password.length < 6 || password.length > 20)
+    return res.json({
+      isSuccess: false,
+      code: 305,
+      message: "비밀번호는 6~20자리를 입력해주세요.",
+    });
 
-
-  if (!nickname) return res.json({ isSuccess: false, code: 400, message: "닉네임을 입력 해주세요." });
-  if (nickname.length > 10) return res.json({
-    isSuccess: false,
-    code: 400,
-    message: "닉네임은 최대 10자리까지 입력해주세요. "
-  });
-
-
+  if (!nickname)
+    return res.json({
+      isSuccess: false,
+      code: 400,
+      message: "닉네임을 입력 해주세요.",
+    });
+  if (nickname.length > 10)
+    return res.json({
+      isSuccess: false,
+      code: 400,
+      message: "닉네임은 최대 10자리까지 입력해주세요. ",
+    });
 
   try {
     // 이메일 중복 확인
     const emailRows = await userDao.userEmailCheck(email);
     if (emailRows.length > 0) {
-
       return res.json({
         isSuccess: false,
         code: 308,
-        message: "중복된 이메일입니다."
+        message: "중복된 이메일입니다.",
       });
     }
 
@@ -63,20 +90,138 @@ exports.signUp = async function (req, res) {
       return res.json({
         isSuccess: false,
         code: 400,
-        message: "중복된 닉네임 입니다."
+        message: "중복된 닉네임 입니다.",
       });
     }
 
+<<<<<<< Updated upstream
     const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
     const insertUserInfoParams = [email, hashedPassword, nickname, height, weight, gender, kidneyType, birth, activityId]//, nickname];
+=======
+    // TRANSACTION : advanced
+    // await connection.beginTransaction(); // START TRANSACTION
+    const hashedPassword = await crypto
+      .createHash("sha512")
+      .update(password)
+      .digest("hex");
+    const insertUserInfoParams = [
+      email,
+      hashedPassword,
+      nickname,
+      height,
+      weight,
+      gender,
+      kidneyType,
+      birth,
+      activityId,
+    ];
+
+    const age = new Date().getFullYear() - new Date(birth).getFullYear();
+
+    const Mheight = height * 0.01;
+    const [[activityRow]] = await userDao.selectActivity(activityId);
+    console.log("activityRow", activityRow);
+    console.log(activityRow.pa);
+
+    const [kidneyTypeRows] = await userDao.selectKidney(kidneyType);
+    console.log("kidneyType", kidneyTypeRows);
+    const Calc = {
+      Mcalorie: (weight, age) => {
+        return (
+          662 - 9.53 * age + activityRow.pa * (15.91 * weight + 539.6 * Mheight)
+        );
+      },
+
+      Fcalorie: (weight, age) => {
+        return (
+          354 - 6.91 * age + activityRow.pa * (9.36 * weight + 726 * Mheight)
+        );
+      },
+
+      pottasium: () => {
+        return 2000;
+      },
+
+      nomalprotein: (gender, height) => {
+        if (gender === "M") {
+          return kidneyTypeRows.protein * Mheight ** 2 * 22;
+        } else {
+          return kidneyTypeRows.protein * Mheight ** 2 * 21;
+        }
+      },
+
+      unnomalprotein: (gender, age) => {
+        if (gender === "M") {
+          if (age >= 12 && age <= 14) {
+            return 60;
+          } else if (age >= 15 && age <= 49) {
+            return 65;
+          } else {
+            return 60;
+          }
+        } else if (gender === "F") {
+          if (age >= 12 && age <= 29) {
+            return 55;
+          } else {
+            return 50;
+          }
+        }
+      },
+
+      nomalPhosphorus: (age) => {
+        if (age >= 12 && age <= 18) {
+          return 1200;
+        } else {
+          return 700;
+        }
+      },
+
+      unomalPhosphorus: () => {
+        const phosphorus = Mheight ** 2 * 21 * 10;
+        if (phosphorus >= 700) {
+          return 700;
+        } else {
+          return phosphorus;
+        }
+      },
+
+      Sodium: (age) => {
+        if (age >= 12 && age <= 64) {
+          return 2300;
+        }
+        if (age >= 65 && age <= 74) {
+          return 2100;
+        } else {
+          return 1700;
+        }
+      },
+    };
+
+    const inserNutritionParams = [
+      (requiredCalorie =
+        gender === "M"
+          ? Calc.Mcalorie(weight, age)
+          : Calc.Fcalorie(weight, age)),
+      (requiredPhosphorus =
+        kidneyType === 2 ? Calc.unomalPhosphorus() : Calc.nomalPhosphorus(age)),
+      (requiredSodium = Calc.Sodium(age)),
+      (requiredPotassium = Calc.pottasium()),
+      (requiredProtein =
+        kidneyType === 7
+          ? Calc.unnomalprotein(gender, age)
+          : Calc.nomalprotein(gender)),
+    ];
+>>>>>>> Stashed changes
 
     const insertUserRows = await userDao.insertUserInfo(insertUserInfoParams);
+    const inserNutritionRows = await userDao.insertuserrequirednuturition(
+      inserNutritionParams
+    );
 
     return res.json({
       isSuccess: true,
       code: 200,
       message: "회원가입 성공",
-
     });
   } catch (err) {
     logger.error(`App - SignUp Query error\n: ${err.message}`);
@@ -89,22 +234,36 @@ update : 2020.10.4
 02.signIn API = 로그인
 **/
 exports.signIn = async function (req, res) {
-  const {
-    email, password
-  } = req.body;
+  const { email, password } = req.body;
 
   console.log(req.body);
 
-  if (!email) return res.json({ isSuccess: false, code: 301, message: "이메일을 입력해주세요." });
-  if (email.length > 30) return res.json({
-    isSuccess: false,
-    code: 302,
-    message: "이메일은 30자리 미만으로 입력해주세요."
-  });
+  if (!email)
+    return res.json({
+      isSuccess: false,
+      code: 301,
+      message: "이메일을 입력해주세요.",
+    });
+  if (email.length > 30)
+    return res.json({
+      isSuccess: false,
+      code: 302,
+      message: "이메일은 30자리 미만으로 입력해주세요.",
+    });
 
-  if (!regexEmail.test(email)) return res.json({ isSuccess: false, code: 303, message: "이메일을 형식을 정확하게 입력해주세요." });
+  if (!regexEmail.test(email))
+    return res.json({
+      isSuccess: false,
+      code: 303,
+      message: "이메일을 형식을 정확하게 입력해주세요.",
+    });
 
-  if (!password) return res.json({ isSuccess: false, code: 304, message: "비밀번호를 입력 해주세요." });
+  if (!password)
+    return res.json({
+      isSuccess: false,
+      code: 304,
+      message: "비밀번호를 입력 해주세요.",
+    });
   try {
     const [userInfoRows] = await userDao.selectUserInfo(email);
 
@@ -113,17 +272,20 @@ exports.signIn = async function (req, res) {
       return res.json({
         isSuccess: false,
         code: 310,
-        message: "아이디를 확인해주세요."
+        message: "아이디를 확인해주세요.",
       });
     }
 
-    const hashedPassword = await crypto.createHash('sha512').update(password).digest('hex');
+    const hashedPassword = await crypto
+      .createHash("sha512")
+      .update(password)
+      .digest("hex");
     if (userInfoRows[0].pw !== hashedPassword) {
       // connection.release();
       return res.json({
         isSuccess: false,
         code: 311,
-        message: "비밀번호를 확인해주세요."
+        message: "비밀번호를 확인해주세요.",
       });
     }
 
@@ -144,24 +306,39 @@ exports.signIn = async function (req, res) {
     // }
 
     //토큰 생성
-    let token = await jwt.sign({
-      id: userInfoRows[0].userId,
-    }, // 토큰의 내용(payload)
+    let token = await jwt.sign(
+      {
+        id: userInfoRows[0].userId,
+      }, // 토큰의 내용(payload)
       secret_config.jwtsecret, // 비밀 키
       {
-        expiresIn: '365d',
-        subject: 'userInfo',
+        expiresIn: "365d",
+        subject: "userInfo",
       } // 유효 시간은 365일
     );
-
+    console.log(req.body);
     res.json({
       userInfo: {
         id: userInfoRows[0].userId,
+<<<<<<< Updated upstream
+=======
+        email: userInfoRows[0].email,
+        nickname: userInfoRows[0].nickname,
+        kidneyType: userInfoRows[0].kidneyDiseaseTypeId,
+        age:
+          new Date().getFullYear() -
+          new Date(userInfoRows[0].birth).getFullYear(),
+        gender: userInfoRows[0].gender,
+        height: userInfoRows[0].height,
+        weight: userInfoRows[0].weight,
+        activityId: userInfoRows[0].activityId,
+        profileImageUrl: userInfoRows[0].profileImageUrl,
+>>>>>>> Stashed changes
       },
       jwt: token,
       isSuccess: true,
       code: 200,
-      message: "로그인 성공"
+      message: "로그인 성공",
     });
 
     // connection.release();
@@ -181,8 +358,8 @@ exports.check = async function (req, res) {
     isSuccess: true,
     code: 200,
     message: "검증 성공",
-    info: req.verifiedToken
-  })
+    info: req.verifiedToken,
+  });
 };
 
 exports.kakaoLogin = async function (req, res) {
@@ -190,10 +367,18 @@ exports.kakaoLogin = async function (req, res) {
   console.log(accessToken);
 
   try {
-    const { data: { id: kakaoId, kakao_account: { email, profile: { nickname, profile_image_url: profileImageUrl } } } } = await axios.get('https://kapi.kakao.com/v2/user/me', {
+    const {
+      data: {
+        id: kakaoId,
+        kakao_account: {
+          email,
+          profile: { nickname, profile_image_url: profileImageUrl },
+        },
+      },
+    } = await axios.get("https://kapi.kakao.com/v2/user/me", {
       headers: {
         Authorization: `bearer ${accessToken}`,
-        'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
+        "Content-Type": "application/x-www-form-urlencoded;charset=utf-8",
       },
     });
 
@@ -202,63 +387,99 @@ exports.kakaoLogin = async function (req, res) {
     // 로그인
     if (userInfoRows.length) {
       //토큰 생성
-      let token = await jwt.sign({
-        id: userInfoRows[0].userId,
-      }, // 토큰의 내용(payload)
+      let token = await jwt.sign(
+        {
+          id: userInfoRows[0].userId,
+        }, // 토큰의 내용(payload)
         secret_config.jwtsecret, // 비밀 키
         {
-          expiresIn: '365d',
-          subject: 'userInfo',
+          expiresIn: "365d",
+          subject: "userInfo",
         } // 유효 시간은 365일
       );
 
       return res.json({
         userInfo: {
           id: userInfoRows[0].userId,
+<<<<<<< Updated upstream
+=======
+          kidneyType: userInfoRows[0].kidneyDiseaseTypeId
+            ? userInfoRows[0].kidneyDiseaseTypeId
+            : "",
+          age: userInfoRows[0].birth
+            ? new Date().getFullYear() -
+              new Date(userInfoRows[0].birth).getFullYear()
+            : "",
+          gender: userInfoRows[0].gender ? userInfoRows[0].gender : "",
+          height: userInfoRows[0].height ? userInfoRows[0].height : "",
+          weight: userInfoRows[0].weight ? userInfoRows[0].weight : "",
+          activityId: userInfoRows[0].activityId
+            ? userInfoRows[0].activityId
+            : "",
+          loginType: "kakao",
+>>>>>>> Stashed changes
         },
         jwt: token,
         isSuccess: true,
         code: 200,
-        message: "카카오 로그인 성공"
+        message: "카카오 로그인 성공",
       });
       // 회원가입
     } else {
+<<<<<<< Updated upstream
       const [insertResult] = await userDao.insertKakaoUser(email, nickname, profileImageUrl, kakaoId);
+=======
+      const [insertResult] = await userDao.insertKakaoUser(
+        nickname,
+        profileImageUrl,
+        kakaoId
+      );
+>>>>>>> Stashed changes
 
       if (insertResult.insertId) {
         const [userRows] = await userDao.findUserByKakaoId(kakaoId);
 
-        let token = await jwt.sign({
-          id: userRows[0].userId,
-        }, // 토큰의 내용(payload)
+        let token = await jwt.sign(
+          {
+            id: userRows[0].userId,
+          }, // 토큰의 내용(payload)
           secret_config.jwtsecret, // 비밀 키
           {
-            expiresIn: '365d',
-            subject: 'userInfo',
+            expiresIn: "365d",
+            subject: "userInfo",
           } // 유효 시간은 365일
         );
 
         return res.json({
           userInfo: {
+<<<<<<< Updated upstream
             id: userRows[0].userId,
             // nickname: userRows[0].nickname,
             // profileImageUrl: userRows[0].profileImageUrl,
             // loginType: 'kakao',
+=======
+            id: userInfoRows[0].userId,
+            nickname: userRows[0].nickname,
+            profileImageUrl: userRows[0].profileImageUrl,
+            loginType: "kakao",
+>>>>>>> Stashed changes
           },
           jwt: token,
           isSuccess: true,
           code: 200,
-          message: "카카오 회원가입 및 로그인 성공"
+          message: "카카오 회원가입 및 로그인 성공",
         });
       }
-
     }
-
   } catch (err) {
     console.log(err);
+<<<<<<< Updated upstream
     res.json({ code: 400, message: '카카오 회원가입 및 로그인 실패' });
+=======
+    res.json({ code: 400, message: "카카오 회원가입 및 로그인 실패" });
+>>>>>>> Stashed changes
   }
-}
+};
 //이메일 중복체크 버튼 클릭 API
 exports.Emailcheck = async function (req, res) {
   const { email } = req.body;
@@ -267,18 +488,16 @@ exports.Emailcheck = async function (req, res) {
     // 이메일 중복 확인
     const emailRows = await userDao.userEmailCheck(email);
     if (emailRows.length > 0) {
-
       return res.json({
         isSuccess: false,
         code: 308,
-        message: "중복된 이메일입니다."
+        message: "중복된 이메일입니다.",
       });
-    }
-    else {
+    } else {
       return res.json({
         isSuccess: true,
         code: 308,
-        message: "success."
+        message: "success.",
       });
     }
   } catch (err) {
@@ -296,18 +515,16 @@ exports.Nicknamecheck = async function (req, res) {
     // 이메일 중복 확인
     const nicknameRows = await userDao.userNicknameCheck(nickname);
     if (nicknameRows.length > 0) {
-
       return res.json({
         isSuccess: false,
         code: 308,
-        message: "중복된 이메일입니다."
+        message: "중복된 이메일입니다.",
       });
-    }
-    else {
+    } else {
       return res.json({
         isSuccess: true,
         code: 308,
-        message: "success."
+        message: "success.",
       });
     }
   } catch (err) {
@@ -320,13 +537,24 @@ exports.Nicknamecheck = async function (req, res) {
 
 exports.saveKakaoUserInfo = async function (req, res) {
   const {
-    body: { height, weight, gender, kidneyType, birth, activityId }, verifiedToken: { id }
+    body: { height, weight, gender, kidneyType, birth, activityId },
+    verifiedToken: { id },
   } = req;
 
   try {
-    const updateKakaoUserInfoParams = [height, weight, gender, kidneyType, birth, activityId, id];
+    const updateKakaoUserInfoParams = [
+      height,
+      weight,
+      gender,
+      kidneyType,
+      birth,
+      activityId,
+      id,
+    ];
 
-    const [updateKakaoUserRows] = await userDao.updateKakaoUserInfo(updateKakaoUserInfoParams);
+    const [updateKakaoUserRows] = await userDao.updateKakaoUserInfo(
+      updateKakaoUserInfoParams
+    );
 
     console.log(updateKakaoUserRows);
 
@@ -347,23 +575,32 @@ exports.saveKakaoUserInfo = async function (req, res) {
     logger.error(`App - SignUp Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
-}
+};
 
 exports.changePassword = async function (req, res) {
   const {
-    body: { current, willBeChanged }, verifiedToken: { id }
+    body: { current, willBeChanged },
+    verifiedToken: { id },
   } = req;
 
-  if (!willBeChanged) return res.json({ isSuccess: false, code: 304, message: "비밀번호를 입력 해주세요." });
-  if (willBeChanged.length < 6 || willBeChanged.length > 20) return res.json({
-    isSuccess: false,
-    code: 305,
-    message: "비밀번호는 6~20자리를 입력해주세요."
-  });
+  if (!willBeChanged)
+    return res.json({
+      isSuccess: false,
+      code: 304,
+      message: "비밀번호를 입력 해주세요.",
+    });
+  if (willBeChanged.length < 6 || willBeChanged.length > 20)
+    return res.json({
+      isSuccess: false,
+      code: 305,
+      message: "비밀번호는 6~20자리를 입력해주세요.",
+    });
 
   try {
-
-    const hashedCurrentPassword = await crypto.createHash('sha512').update(current).digest('hex');
+    const hashedCurrentPassword = await crypto
+      .createHash("sha512")
+      .update(current)
+      .digest("hex");
 
     const [userInfoRows] = await userDao.findUserByUserId(id);
 
@@ -371,12 +608,18 @@ exports.changePassword = async function (req, res) {
       return res.json({
         isSuccess: false,
         code: 400,
-        message: "현재 패스워드를 확인해주세요."
+        message: "현재 패스워드를 확인해주세요.",
       });
     } else {
       if (userInfoRows[0].pw === hashedCurrentPassword) {
-        const hashedWillBeChangedPassword = await crypto.createHash('sha512').update(willBeChanged).digest('hex');
-        const [updatePasswordRow] = await userDao.updatePassword(hashedWillBeChangedPassword, id);
+        const hashedWillBeChangedPassword = await crypto
+          .createHash("sha512")
+          .update(willBeChanged)
+          .digest("hex");
+        const [updatePasswordRow] = await userDao.updatePassword(
+          hashedWillBeChangedPassword,
+          id
+        );
 
         if (updatePasswordRow.affectedRows) {
           return res.json({
@@ -397,10 +640,11 @@ exports.changePassword = async function (req, res) {
     logger.error(`App - SignUp Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
-}
+};
 
 exports.changeBasicInfo = async function(req, res){
   const {
+<<<<<<< Updated upstream
     body: { weight, kidneyType, activityId }, verifiedToken: { id }
   } = req;
 
@@ -426,6 +670,155 @@ exports.changeBasicInfo = async function(req, res){
     code: 400,
     message: "활동수준은 숫자만 입력해주세요."
   });
+=======
+    body: { weight },
+    verifiedToken: { id },
+  } = req;
+
+  console.log(weight);
+
+  if (!weight)
+    return res.json({
+      isSuccess: false,
+      code: 304,
+      message: "몸무게를 입력 해주세요.",
+    });
+  if (!typeof weight === "number")
+    return res.json({
+      isSuccess: false,
+      code: 305,
+      message: "몸무게는 숫자만 입력해주세요.",
+    });
+
+  try {
+    const [updateWeight] = await userDao.updateWeight(weight, id);
+
+    if (updateWeight.affectedRows) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "몸무게 변경 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "몸무게 변경 실패",
+      });
+    }
+  } catch (err) {
+    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+};
+
+exports.changeKidneyType = async function (req, res) {
+  const {
+    body: { kidneyType },
+    verifiedToken: { id },
+  } = req;
+
+  console.log(kidneyType);
+
+  if (!kidneyType)
+    return res.json({
+      isSuccess: false,
+      code: 304,
+      message: "몸무게를 입력 해주세요.",
+    });
+  if (!typeof kidneyType === "number")
+    return res.json({
+      isSuccess: false,
+      code: 305,
+      message: "몸무게는 숫자만 입력해주세요.",
+    });
+
+  try {
+    const [updateKidneyType] = await userDao.updateKidneyType(kidneyType, id);
+
+    if (updateKidneyType.affectedRows) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "몸무게 변경 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "몸무게 변경 실패",
+      });
+    }
+  } catch (err) {
+    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+};
+
+exports.changeKidneyType = async function (req, res) {
+  const {
+    body: { kidneyType },
+    verifiedToken: { id },
+  } = req;
+
+  console.log(kidneyType);
+
+  if (!kidneyType)
+    return res.json({
+      isSuccess: false,
+      code: 304,
+      message: "건강상태를 입력 해주세요.",
+    });
+  if (!typeof kidneyType === "number")
+    return res.json({
+      isSuccess: false,
+      code: 305,
+      message: "건강상태는 숫자만 입력해주세요.",
+    });
+
+  try {
+    const [updateKidneyType] = await userDao.updateKidneyType(kidneyType, id);
+
+    if (updateKidneyType.affectedRows) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "건강상태 변경 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "건강상태 변경 실패",
+      });
+    }
+  } catch (err) {
+    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+};
+
+exports.changeActivityId = async function (req, res) {
+  const {
+    body: { activityId },
+    verifiedToken: { id },
+  } = req;
+
+  console.log(activityId);
+
+  if (!activityId)
+    return res.json({
+      isSuccess: false,
+      code: 304,
+      message: "활동수준을 입력 해주세요.",
+    });
+  if (!typeof activityId === "number")
+    return res.json({
+      isSuccess: false,
+      code: 305,
+      message: "활동수준은 숫자만 입력해주세요.",
+    });
+>>>>>>> Stashed changes
 
   try {
     const [updateBasicInfoRow] = await userDao.updateBasicInfo([weight, kidneyType, activityId], id);
@@ -443,7 +836,6 @@ exports.changeBasicInfo = async function(req, res){
         message: "기본정보 변경 실패",
       });
     }
-
   } catch (err) {
     logger.error(`App - SignUp Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
@@ -469,13 +861,14 @@ exports.getMyInfo = async function (req, res) {
           email: userRow[0].email,
           nickname: userRow[0].nickname,
           kidneyType: userRow[0].kidneyDiseaseTypeId,
-          age: new Date().getFullYear() - new Date(userRow[0].birth).getFullYear(),
+          age:
+            new Date().getFullYear() - new Date(userRow[0].birth).getFullYear(),
           gender: userRow[0].gender,
           height: userRow[0].height,
           weight: userRow[0].weight,
           activityId: userRow[0].activityId,
           profileImageUrl: userRow[0].profileImageUrl,
-        }
+        },
       });
     } else {
       return res.json({
@@ -484,10 +877,13 @@ exports.getMyInfo = async function (req, res) {
         message: "유저정보 가져오기 실패",
       });
     }
-
   } catch (err) {
     logger.error(`App - SignUp Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
+<<<<<<< Updated upstream
 }
 
+=======
+};
+>>>>>>> Stashed changes
