@@ -209,7 +209,7 @@ exports.signUp = async function (req, res) {
     ];
 
     const insertUserRows = await userDao.insertUserInfo(insertUserInfoParams);
-    const inserNutritionRows = await userDao.insertuserrequirednuturition(
+    const inserNutritionRows = await userDao.insertuserRequiredNuturition(
       inserNutritionParams
     );
 
@@ -668,9 +668,11 @@ exports.getMyInfo = async function (req, res) {
   const { id } = req.verifiedToken;
 
   console.log(id);
+  console.log({ id });
 
   try {
     const [userRow] = await userDao.findUserByUserId(id);
+    const [nutritionRow] = await userDao.findNutiritionByID(id);
 
     if (userRow) {
       return res.json({
@@ -690,6 +692,13 @@ exports.getMyInfo = async function (req, res) {
           weight: userRow[0].weight,
           activityId: userRow[0].activityId,
           profileImageUrl: userRow[0].profileImageUrl,
+          goal: {
+            protein: nutritionRow[0].requiredProtein,
+            pottasium: nutritionRow[0].requiredPotassium,
+            sodium: nutritionRow[0].requiredSodium,
+            phosphorus: nutritionRow[0].requiredPhosphorus,
+            calorie: nutritionRow[0].requiredCalorie,
+          },
         },
       });
     } else {
@@ -697,6 +706,38 @@ exports.getMyInfo = async function (req, res) {
         isSuccess: false,
         code: 400,
         message: "유저정보 가져오기 실패",
+      });
+    }
+  } catch (err) {
+    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+};
+
+//changeNutrition API
+exports.changeBasicNutrition = async function (req, res) {
+  const {
+    body: { calorie, protein, phosphorus, potassium, sodium },
+    verifiedToken: { id },
+  } = req;
+
+  try {
+    const [updateBasicNutritionRow] = await userDao.updateBasicNutrition(
+      [calorie, protein, phosphorus, potassium, sodium],
+      id
+    );
+
+    if (updateBasicNutritionRow.affectedRows) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "기본정보 변경 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "기본정보 변경 실패",
       });
     }
   } catch (err) {

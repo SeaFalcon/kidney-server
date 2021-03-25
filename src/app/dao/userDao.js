@@ -48,18 +48,18 @@ async function insertUserInfo(insertUserInfoParams) {
   return insertUserInfoRow;
 }
 
-async function insertuserrequirednuturition(userrequirednuturitionParams) {
+async function insertuserRequiredNuturition(userRequiredNuturitionParams) {
   const connection = await pool.getConnection(async (conn) => conn);
-  const userrequirednuturitionQuery = `
-        INSERT into userrequirednuturition (requiredCalorie, requiredPhosphorus, requiredSodium, requiredPotassium, requiredProtein)
+  const userRequiredNuturitionQuery = `
+        INSERT into userRequiredNuturition (requiredCalorie, requiredPhosphorus, requiredSodium, requiredPotassium, requiredProtein)
         VALUES (?, ?, ?, ?, ?);
     `;
-  const userrequirednuturitionRow = await connection.query(
-    userrequirednuturitionQuery,
-    userrequirednuturitionParams
+  const userRequiredNuturitionRow = await connection.query(
+    userRequiredNuturitionQuery,
+    userRequiredNuturitionParams
   );
   connection.release();
-  return userrequirednuturitionRow;
+  return userRequiredNuturitionRow;
 }
 
 async function selectActivity(activityId) {
@@ -126,6 +126,25 @@ async function findUserById(id) {
 
   return [findUserByIdRows];
 }
+
+// nutrition
+async function findNutiritionByID(id) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const findNutiritionByIDQuery = `
+    SELECT *
+    FROM userRequiredNuturition
+    WHERE userId = ?;
+  `;
+
+  let findNutiritionByIdParmas = [id];
+  const [findNutiritionByIDRows] = await connection.query(
+    findNutiritionByIDQuery,
+    findNutiritionByIdParmas
+  );
+
+  return [findNutiritionByIDRows];
+}
+
 async function updateUserName(id, name) {
   const connection = await pool.getConnection(async (conn) => conn);
   const updateUserNameQuery = `
@@ -269,6 +288,100 @@ async function updateBasicInfo(basicInfoParams, id) {
   return updateBasicInfoRow;
 }
 
+// update nutrition
+
+async function updateBasicNutrition(basicNutritionParams, id) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const updateBasicNutritionQuery = `
+        UPDATE userRequiredNuturition SET requiredCalorie = ?, requiredPhosphorus = ?, requiredSodium = ?, requiredPotassium = ?, requiredProtein = ? 
+        WHERE userId = ?
+    `;
+  const updateBasicNutritionRow = await connection.query(
+    updateBasicNutritionQuery,
+    [...basicNutritionParams, id]
+  );
+  connection.release();
+  return updateBasicNutritionRow;
+}
+
+// calorie
+async function updateCalorie(newCalorie, id) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const updateCalorieQuery = `
+        UPDATE userRequiredNuturition SET requiredCalorie = ?
+        WHERE userId = ?
+    `;
+  const updateCalorieRow = await connection.query(updateCalorieQuery, [
+    newCalorie,
+    id,
+  ]);
+  connection.release();
+  return updateCalorieRow;
+}
+
+//protein
+async function updateProtein(newProtein, id) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const updateProteinQuery = `
+        UPDATE userRequiredNuturition SET requiredProtein = ?
+        WHERE userId = ?
+    `;
+  const updateProteinRow = await connection.query(updateProteinQuery, [
+    newProtein,
+    id,
+  ]);
+  connection.release();
+  return updateProteinRow;
+}
+
+//potassium
+async function updatePotassium(newPotassium, id) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const updatePotassiumQuery = `
+    UPDATE userRequiredNuturition SET requiredPotassium =?
+    WHERE userId = ?
+  `;
+
+  const updatePotassiumRow = await connection.query(updatePotassiumQuery, [
+    newPotassium,
+    id,
+  ]);
+
+  connection.release();
+  return updatePotassiumRow;
+}
+
+//sodium
+async function updateSodium(newSodium, id) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const updateSodiumQuery = `
+    UPDATE userRequiredNuturition SET requiredSodium =?
+    WHERE userId = ?
+  `;
+
+  const updateSodiumRow = await connection.query(updateSodiumQuery, [
+    newSodium,
+    id,
+  ]);
+
+  connection.release();
+  return updateSodiumRow;
+}
+
+//Phosphorus
+async function updatePhosphorus(newPhosphorus, id) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const updatePhosphorusQuery = `
+        UPDATE userRequiredNuturition SET requiredPhosphorus = ?
+        WHERE userId = ?
+    `;
+  const updatePhosphorusRow = await connection.query(updatePhosphorusQuery, [
+    newPhosphorus,
+    id,
+  ]);
+  connection.release();
+  return updatePhosphorusRow;
+}
 module.exports = {
   userEmailCheck,
   userNicknameCheck,
@@ -286,5 +399,12 @@ module.exports = {
   updateBasicInfo,
   selectActivity,
   selectKidney,
-  insertuserrequirednuturition,
+  insertuserRequiredNuturition,
+  findNutiritionByID,
+  updateCalorie,
+  updateProtein,
+  updatePotassium,
+  updateSodium,
+  updatePhosphorus,
+  updateBasicNutrition,
 };
