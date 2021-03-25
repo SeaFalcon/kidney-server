@@ -82,7 +82,7 @@ async function selectKidney(kidneyType) {
   const connection = await pool.getConnection(async (conn) => conn);
   const selectKidneyQuery = `
       SELECT *
-      FROM kidneytype
+      FROM kidneyType
       WHERE kidneyId = ?;
       `;
 

@@ -10,6 +10,8 @@ const secret_config = require("../../../config/secret");
 
 const userDao = require("../dao/userDao");
 
+
+
 /**
  update : 2020.10.4
  01.signUp API = 회원가입
@@ -134,7 +136,7 @@ exports.signUp = async function (req, res) {
         );
       },
 
-      pottasium: () => {
+      potassium: () => {
         return 2000;
       },
 
@@ -201,17 +203,21 @@ exports.signUp = async function (req, res) {
       (requiredPhosphorus =
         kidneyType === 2 ? Calc.unomalPhosphorus() : Calc.nomalPhosphorus(age)),
       (requiredSodium = Calc.Sodium(age)),
-      (requiredPotassium = Calc.pottasium()),
+      (requiredPotassium = Calc.potassium()),
       (requiredProtein =
         kidneyType === 7
           ? Calc.unnomalprotein(gender, age)
           : Calc.nomalprotein(gender)),
     ];
 
+    console.log(inserNutritionParams);
+
     const insertUserRows = await userDao.insertUserInfo(insertUserInfoParams);
     const inserNutritionRows = await userDao.insertuserRequiredNuturition(
       inserNutritionParams
     );
+
+
 
     return res.json({
       isSuccess: true,
@@ -645,7 +651,12 @@ exports.changeBasicInfo = async function (req, res) {
       id
     );
 
-    if (updateBasicInfoRow.affectedRows) {
+    const [updateBasicNutritionRow] = await userDao.updateBasicNutrition(
+        [calorie, protein, phosphorus, potassium, sodium],
+        id
+    )
+
+    if (updateBasicInfoRow.affectedRows && updateBasicNutritionRow.affectedRows) {
       return res.json({
         isSuccess: true,
         code: 200,
@@ -673,8 +684,10 @@ exports.getMyInfo = async function (req, res) {
   try {
     const [userRow] = await userDao.findUserByUserId(id);
     const [nutritionRow] = await userDao.findNutiritionByID(id);
-
+    console.log(userRow);
+    console.log(nutritionRow);
     if (userRow) {
+
       return res.json({
         isSuccess: true,
         code: 200,
@@ -694,7 +707,7 @@ exports.getMyInfo = async function (req, res) {
           profileImageUrl: userRow[0].profileImageUrl,
           goal: {
             protein: nutritionRow[0].requiredProtein,
-            pottasium: nutritionRow[0].requiredPotassium,
+            potassium: nutritionRow[0].requiredPotassium,
             sodium: nutritionRow[0].requiredSodium,
             phosphorus: nutritionRow[0].requiredPhosphorus,
             calorie: nutritionRow[0].requiredCalorie,
