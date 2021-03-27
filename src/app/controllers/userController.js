@@ -651,10 +651,10 @@ exports.changeBasicInfo = async function (req, res) {
       id
     );
 
-    const [updateBasicNutritionRow] = await userDao.updateBasicNutrition(
-        [calorie, protein, phosphorus, potassium, sodium],
-        id
-    )
+    // const [updateBasicNutritionRow] = await userDao.updateBasicNutrition(
+    //     [calorie, protein, phosphorus, potassium, sodium],
+    //     id
+    // )
 
     if (updateBasicInfoRow.affectedRows && updateBasicNutritionRow.affectedRows) {
       return res.json({
