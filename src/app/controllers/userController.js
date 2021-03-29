@@ -128,7 +128,7 @@ exports.signUp = async function (req, res) {
               ? Mcalorie(weight, age, Mheight, activity)
               : Fcalorie(weight, age, Mheight, activity)),
       (requiredPhosphorus =
-          kidneyType === 2 ? unomalPhosphorus() : nomalPhosphorus(age)),
+          kidneyType === 2 ? unomalPhosphorus(Mheight) : nomalPhosphorus(age)),
       (requiredSodium = Sodium(age)),
       (requiredPotassium = potassium()),
       (requiredProtein =
@@ -454,7 +454,7 @@ exports.saveKakaoUserInfo = async function (req, res) {
               ? Mcalorie(weight, age, Mheight, activity)
               : Fcalorie(weight, age, Mheight, activity)),
       (requiredPhosphorus =
-          kidneyType === 2 ? unomalPhosphorus() : nomalPhosphorus(age)),
+          kidneyType === 2 ? unomalPhosphorus(Mheight) : nomalPhosphorus(age)),
       (requiredSodium = Sodium(age)),
       (requiredPotassium = potassium()),
       (requiredProtein =
@@ -619,8 +619,12 @@ exports.changeBasicInfo = async function (req, res) {
       kidney = kidneyTypeRows.protein;
 
       requiredCalorie = (userRow[0].gender === "M" ? Mcalorie(weight, age, Mheight, activity) : Fcalorie(weight, age, Mheight, activity));
-          requiredPhosphorus = (kidneyType === 2 ? unomalPhosphorus() : nomalPhosphorus(age));
-          requiredProtein = (kidneyType === 7 ? unnomalprotein(userRow[0].gender, age) : nomalprotein(userRow[0].gender, Mheight, kidney));
+      requiredPhosphorus = (kidneyType === 2 ? unomalPhosphorus(Mheight) : nomalPhosphorus(age));
+      requiredProtein = (kidneyType === 7 ? unnomalprotein(userRow[0].gender, age) : nomalprotein(userRow[0].gender, Mheight, kidney));
+
+          console.log("calorie : " + requiredCalorie);
+          console.log("phosphrus : "  + requiredPhosphorus);
+          console.log("protein : " + requiredProtein);
 
     const [chageBasicNutritionRow] = await userDao.chageBasicNutrition(
         [requiredCalorie, requiredPhosphorus, requiredProtein],
@@ -705,11 +709,14 @@ exports.changeBasicNutrition = async function (req, res) {
     verifiedToken: { id },
   } = req;
 
+  console.log(req.body);
+  
   try {
     const [updateBasicNutritionRow] = await userDao.updateBasicNutrition(
       [calorie, protein, phosphorus, potassium, sodium],
       id
     );
+
 
     if (updateBasicNutritionRow.affectedRows) {
       return res.json({

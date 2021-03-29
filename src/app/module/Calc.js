@@ -2,6 +2,7 @@
 let age = function (birth) {
     return new Date().getFullYear() - new Date(birth).getFullYear();
 };
+
 let Mheight = function (height) {
     return height * 0.01;
 };
@@ -48,7 +49,8 @@ let nomalPhosphorus = function (age) {
         return 700;
     }
 };
-let unomalPhosphorus = function () {
+
+let unomalPhosphorus = function (Mheight) {
     const phosphorus = Mheight ** 2 * 21 * 10;
     if (phosphorus >= 700) {
         return 700;
@@ -66,6 +68,7 @@ let Sodium = function (age) {
         return 1700;
     }
 };
+
 module.exports = {
     age,
     Mheight,
