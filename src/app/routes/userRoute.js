@@ -19,7 +19,7 @@ module.exports = function (app) {
   app.patch("/user/password", jwtMiddleware, user.changePassword);
 
   app.put("/user", jwtMiddleware, user.changeBasicInfo);
-  app.put("/nutrition", jwtMiddleware, user.changeBasicNutrition);
+  app.put("/user/nutirition", jwtMiddleware, user.changeBasicNutrition);
 
   app.get("/me", jwtMiddleware, user.getMyInfo);
 };

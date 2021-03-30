@@ -613,10 +613,10 @@ exports.changeBasicInfo = async function (req, res) {
     const [[activityRow]] = await userDao.selectActivity(activityId);
     console.log(activityRow.pa);
     const [kidneyTypeRows] = await userDao.selectKidney(kidneyType);
-      Mheight = Mheight(userRow[0].height);
-      age = age(userRow[0].birth);
-      activity = activityRow.pa;
-      kidney = kidneyTypeRows.protein;
+      Mheight = await Mheight(userRow[0].height);
+      age = await age(userRow[0].birth);
+      activity = await activityRow.pa;
+      kidney = await kidneyTypeRows.protein;
 
       requiredCalorie = (userRow[0].gender === "M" ? Mcalorie(weight, age, Mheight, activity) : Fcalorie(weight, age, Mheight, activity));
       requiredPhosphorus = (kidneyType === 2 ? unomalPhosphorus(Mheight) : nomalPhosphorus(age));
@@ -722,13 +722,13 @@ exports.changeBasicNutrition = async function (req, res) {
       return res.json({
         isSuccess: true,
         code: 200,
-        message: "기본정보 변경 성공",
+        message: "영양소 변경 성공",
       });
     } else {
       return res.json({
         isSuccess: false,
         code: 400,
-        message: "기본정보 변경 실패",
+        message: "영양소 변경 실패",
       });
     }
   } catch (err) {
