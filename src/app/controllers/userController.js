@@ -117,24 +117,24 @@ exports.signUp = async function (req, res) {
 
     const [[activityRow]] = await userDao.selectActivity(activityId);
     const [kidneyTypeRows] = await userDao.selectKidney(kidneyType);
-    Mheight = Mheight(height);
-    age = age(birth);
-    activity = activityRow.pa;
-    kidney = kidneyTypeRows.protein;
+    let Mheight2 = Mheight(height);
+    let age2 = age(birth);
+    let activity = activityRow.pa;
+    let kidney = kidneyTypeRows.protein;
 
     const inserNutritionParams = [
       (requiredCalorie =
           gender === "M"
-              ? Mcalorie(weight, age, Mheight, activity)
-              : Fcalorie(weight, age, Mheight, activity)),
+              ? Mcalorie(weight, age2, Mheight2, activity)
+              : Fcalorie(weight, age2, Mheight2, activity)),
       (requiredPhosphorus =
-          kidneyType === 2 ? unomalPhosphorus(Mheight) : nomalPhosphorus(age)),
-      (requiredSodium = Sodium(age)),
+          kidneyType === 2 ? unomalPhosphorus(Mheight2) : nomalPhosphorus(age2)),
+      (requiredSodium = Sodium(age2)),
       (requiredPotassium = potassium()),
       (requiredProtein =
           kidneyType === 7
-              ? unnomalprotein(gender, age)
-              : nomalprotein(gender, Mheight, kidney)),
+              ? unnomalprotein(gender, age2)
+              : nomalprotein(gender, Mheight2, kidney)),
     ];
 
     console.log(inserNutritionParams);
@@ -443,24 +443,25 @@ exports.saveKakaoUserInfo = async function (req, res) {
 
     const [[activityRow]] = await userDao.selectActivity(activityId);
     const [kidneyTypeRows] = await userDao.selectKidney(kidneyType);
-    Mheight = Mheight(height);
-    age = age(birth);
-    activity = activityRow.pa;
-    kidney = kidneyTypeRows.protein;
+
+    let Mheight2 = Mheight(height);
+    let age2 = age(birth);
+    let activity = activityRow.pa;
+    let kidney = kidneyTypeRows.protein;
 
     const inserNutritionParams = [
       (requiredCalorie =
           gender === "M"
-              ? Mcalorie(weight, age, Mheight, activity)
-              : Fcalorie(weight, age, Mheight, activity)),
+              ? Mcalorie(weight, age2, Mheight2, activity)
+              : Fcalorie(weight, age2, Mheight2, activity)),
       (requiredPhosphorus =
-          kidneyType === 2 ? unomalPhosphorus(Mheight) : nomalPhosphorus(age)),
-      (requiredSodium = Sodium(age)),
+          kidneyType === 2 ? unomalPhosphorus(Mheight2) : nomalPhosphorus(age2)),
+      (requiredSodium = Sodium(age2)),
       (requiredPotassium = potassium()),
       (requiredProtein =
           kidneyType === 7
-              ? unnomalprotein(gender, age)
-              : nomalprotein(gender, Mheight, kidney)),
+              ? unnomalprotein(gender, age2)
+              : nomalprotein(gender, Mheight2, kidney)),
     ];
 
     console.log(inserNutritionParams);
@@ -613,14 +614,14 @@ exports.changeBasicInfo = async function (req, res) {
     const [[activityRow]] = await userDao.selectActivity(activityId);
     console.log(activityRow.pa);
     const [kidneyTypeRows] = await userDao.selectKidney(kidneyType);
-      Mheight = await Mheight(userRow[0].height);
-      age = await age(userRow[0].birth);
-      activity = await activityRow.pa;
-      kidney = await kidneyTypeRows.protein;
+    let Mheight2 =  Mheight(userRow[0].height);
+    let age2 =  age(userRow[0].birth);
+    let activity = activityRow.pa;
+    let kidney = kidneyTypeRows.protein;
 
-      requiredCalorie = (userRow[0].gender === "M" ? Mcalorie(weight, age, Mheight, activity) : Fcalorie(weight, age, Mheight, activity));
-      requiredPhosphorus = (kidneyType === 2 ? unomalPhosphorus(Mheight) : nomalPhosphorus(age));
-      requiredProtein = (kidneyType === 7 ? unnomalprotein(userRow[0].gender, age) : nomalprotein(userRow[0].gender, Mheight, kidney));
+      requiredCalorie = (userRow[0].gender === "M" ? Mcalorie(weight, age2, Mheight2, activity) : Fcalorie(weight, age2, Mheight2, activity));
+      requiredPhosphorus = (kidneyType === 2 ? unomalPhosphorus(Mheight2) : nomalPhosphorus(age2));
+      requiredProtein = (kidneyType === 7 ? unnomalprotein(userRow[0].gender, age2) : nomalprotein(userRow[0].gender, Mheight2, kidney));
 
           console.log("calorie : " + requiredCalorie);
           console.log("phosphrus : "  + requiredPhosphorus);
