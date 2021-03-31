@@ -1,4 +1,3 @@
-const { pool } = require("../../../config/database");
 const { logger } = require("../../../config/winston");
 
 const axios = require("axios").default;
@@ -143,8 +142,6 @@ exports.signUp = async function (req, res) {
     const inserNutritionRows = await userDao.insertuserRequiredNuturition(
       inserNutritionParams
     );
-
-
 
     return res.json({
       isSuccess: true,
@@ -360,6 +357,7 @@ exports.kakaoLogin = async function (req, res) {
     }
   } catch (err) {
     console.log(err);
+    logger.error(`App - KakaoLogin Query error\n: ${JSON.stringify(err)}`);
     res.json({ code: 400, message: "카카오 회원가입 및 로그인 실패" });
   }
 };
@@ -386,7 +384,7 @@ exports.Emailcheck = async function (req, res) {
   } catch (err) {
     // await connection.rollback(); // ROLLBACK
     // connection.release();
-    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    logger.error(`App - Emailcheck Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
 };
@@ -413,7 +411,7 @@ exports.Nicknamecheck = async function (req, res) {
   } catch (err) {
     // await connection.rollback(); // ROLLBACK
     // connection.release();
-    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    logger.error(`App - Nicknamecheck Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
 };
@@ -485,7 +483,7 @@ exports.saveKakaoUserInfo = async function (req, res) {
       });
     }
   } catch (err) {
-    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    logger.error(`App - saveKakaoUserInfo Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
 };
@@ -550,7 +548,7 @@ exports.changePassword = async function (req, res) {
       }
     }
   } catch (err) {
-    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    logger.error(`App - changePassword Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
 };
@@ -646,7 +644,7 @@ exports.changeBasicInfo = async function (req, res) {
       });
     }
   } catch (err) {
-    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    logger.error(`App - changeBasicInfo Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
 };
@@ -698,7 +696,7 @@ exports.getMyInfo = async function (req, res) {
       });
     }
   } catch (err) {
-    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    logger.error(`App - getMyInfo Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
 };
@@ -733,7 +731,7 @@ exports.changeBasicNutrition = async function (req, res) {
       });
     }
   } catch (err) {
-    logger.error(`App - SignUp Query error\n: ${err.message}`);
+    logger.error(`App - changeBasicNutrition Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
 };
