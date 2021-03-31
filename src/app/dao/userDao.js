@@ -75,6 +75,8 @@ async function selectActivity(activityId) {
     selectActivityQuery,
     selectActivityParams
   );
+
+  connection.release();
   return [activityRows];
 }
 
@@ -91,6 +93,8 @@ async function selectKidney(kidneyType) {
     selectKidneyQuery,
     selectKidneyParams
   );
+
+  connection.release();
   return kidneyTypeRows;
 }
 
@@ -108,6 +112,8 @@ async function selectUserInfo(email) {
     selectUserInfoQuery,
     selectUserInfoParams
   );
+
+  connection.release();
   return [userInfoRows];
 }
 
@@ -124,6 +130,7 @@ async function findUserById(id) {
     findUserByIdParams
   );
 
+  connection.release();
   return [findUserByIdRows];
 }
 
@@ -142,6 +149,7 @@ async function findNutiritionByID(id) {
     findNutiritionByIdParmas
   );
 
+  connection.release();
   return [findNutiritionByIDRows];
 }
 
@@ -203,19 +211,29 @@ async function updateKakaoUserInfo(updateKakaoUserInfoParams) {
 }
 
 async function findUserByUserId(id) {
-  const connection = await pool.getConnection(async (conn) => conn);
-  const findUserByIdQuery = `
+  try {
+    const connection = await pool.getConnection(async (conn) => conn);
+    
+    const findUserByIdQuery = `
       SELECT *
       FROM user
       WHERE userId = ?;
     `;
-  let findUserByIdParams = [id];
-  const [findUserByIdRows] = await connection.query(
-    findUserByIdQuery,
-    findUserByIdParams
-  );
+    let findUserByIdParams = [id];
+    const [findUserByIdRows] = await connection.query(
+      findUserByIdQuery,
+      findUserByIdParams
+    );
 
-  return [findUserByIdRows];
+
+
+    connection.release();
+
+    return [findUserByIdRows];
+  } catch (err) {
+
+    console.log(err);
+  }
 }
 
 async function updatePassword(newPassword, id) {
@@ -295,8 +313,8 @@ async function chageBasicNutrition(basicNutritionParams, id) {
         WHERE userId = ?
     `;
   const chageBasicNutritionRow = await connection.query(
-      chageBasicNutritionQuery,
-      [...basicNutritionParams, id]
+    chageBasicNutritionQuery,
+    [...basicNutritionParams, id]
   );
   connection.release();
   return chageBasicNutritionRow;

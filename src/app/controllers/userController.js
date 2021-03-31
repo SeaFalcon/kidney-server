@@ -656,10 +656,16 @@ exports.getMyInfo = async function (req, res) {
   console.log({ id });
 
   try {
+
+
     const [userRow] = await userDao.findUserByUserId(id);
+
+
     const [nutritionRow] = await userDao.findNutiritionByID(id);
-    console.log(userRow);
-    console.log(nutritionRow);
+
+
+    // console.log(userRow);
+    // console.log(nutritionRow);
     if (userRow) {
 
       return res.json({
