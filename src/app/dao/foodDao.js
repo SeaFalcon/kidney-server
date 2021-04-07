@@ -18,8 +18,8 @@ exports.findByFoodName = async function (foodName, userId) {
   // 해당 유저가 이미 섭취한 음식이 있는지 검색하여 구분
   const findDuplicatedFoodQuery = `
     SELECT foodId, fir.foodIntakeRecordTypeId
-    FROM foodintakerecord fir
-            JOIN foodintakerecordsub firs ON fir.foodIntakeRecordId = firs.foodIntakeRecordId AND
+    FROM foodIntakeRecord fir
+            JOIN foodIntakeRecordSub firs ON fir.foodIntakeRecordId = firs.foodIntakeRecordId AND
                                               fir.foodIntakeRecordTypeId = firs.foodIntakeRecordTypeId
             JOIN user u ON fir.userId = u.userId
     WHERE u.userId = ?
@@ -48,8 +48,8 @@ exports.getFoodRecord = async function (id) {
   const connection = await pool.getConnection(async (conn) => conn);
   const getFoodRecordQuery = `
     SELECT fir.foodIntakeRecordTypeId, f.*
-    FROM foodintakerecord fir
-            JOIN foodintakerecordsub firs
+    FROM foodIntakeRecord fir
+            JOIN foodIntakeRecordSub firs
                   ON fir.foodIntakeRecordId = firs.foodIntakeRecordId AND
                     fir.foodIntakeRecordTypeId = firs.foodIntakeRecordTypeId
             JOIN food f ON firs.foodId = f.foodId
@@ -79,7 +79,7 @@ exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, foodIds
     // 오늘 추가된 FoodIntakeRecord header가 있는지 확인
     const isExistFoodIntakeRecordQuery = `
       SELECT foodIntakeRecordId
-      FROM foodintakerecord
+      FROM foodIntakeRecord
       WHERE date(createdAt) = date(now())
         AND foodIntakeRecordTypeId = ?
         AND userId = ?;
@@ -118,7 +118,7 @@ exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, foodIds
 
     const isExistFoodQuery = `
       SELECT foodId
-      FROM foodintakerecordsub
+      FROM foodIntakeRecordSub
       WHERE foodIntakeRecordId = ?
         AND foodIntakeRecordTypeId = ?
         AND foodId = ?;
@@ -146,6 +146,7 @@ exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, foodIds
 
     return true;
   } catch (err) {
+    console.log('err', err);
     await connection.rollback(); // COMMIT
     connection.release();
 

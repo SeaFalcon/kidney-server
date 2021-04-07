@@ -325,7 +325,7 @@ async function chageBasicNutrition(basicNutritionParams, id) {
 async function updateBasicNutrition(basicNutritionParams, id) {
   const connection = await pool.getConnection(async (conn) => conn);
   const updateBasicNutritionQuery = `
-        UPDATE userRequiredNuturition SET requiredCalorie = ?, requiredPhosphorus = ?, requiredSodium = ?, requiredPotassium = ?, requiredProtein = ? 
+        UPDATE userRequiredNuturition SET requiredCalorie = ?, requiredProtein = ?, requiredPhosphorus = ?, requiredPotassium = ?, requiredSodium = ? 
         WHERE userId = ?
     `;
   const updateBasicNutritionRow = await connection.query(

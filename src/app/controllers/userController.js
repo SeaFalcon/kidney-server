@@ -364,6 +364,7 @@ exports.kakaoLogin = async function (req, res) {
 //이메일 중복체크 버튼 클릭 API
 exports.Emailcheck = async function (req, res) {
   const { email } = req.body;
+  console.log(email);
 
   try {
     // 이메일 중복 확인

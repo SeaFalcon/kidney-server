@@ -81,7 +81,7 @@ exports.getFoodRecord = async function (req, res) {
       });
     }
   } catch (err) {
-    logger.error(`App - findByFoodName Query error\n: ${err.message}`);
+    logger.error(`App - getFoodRecord Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
 };
@@ -103,6 +103,8 @@ exports.saveFoodRecord = async function (req, res) {
   try {
     
     const result = await foodDao.insertFoodIntakeRecord(foodIntakeRecordType, foodIds, id);
+
+    console.log('insertResult', result);
         
     if (result) {
       return res.json({
