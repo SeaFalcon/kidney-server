@@ -1,3 +1,4 @@
+const { json } = require("express");
 const { logger } = require("../../../config/winston");
 const foodDao = require("../dao/foodDao");
 
@@ -88,13 +89,13 @@ exports.getFoodRecord = async function (req, res) {
 
 exports.saveFoodRecord = async function (req, res) {
   const {
-    body: { foodIntakeRecordType, foodIds },
+    body: { foodIntakeRecordType, basketFoods }, 
     verifiedToken: { id },
   } = req;
 
-  console.log(foodIntakeRecordType, foodIds);
+  console.log(foodIntakeRecordType, basketFoods);
 
-  if (!foodIntakeRecordType || !foodIds.length) return res.json({
+  if (!foodIntakeRecordType || !basketFoods.length) return res.json({
     isSuccess: false,
     code: 400,
     message: "식사 시기 또는 음식 정보가 누락되었습니다.",
@@ -102,7 +103,7 @@ exports.saveFoodRecord = async function (req, res) {
 
   try {
     
-    const result = await foodDao.insertFoodIntakeRecord(foodIntakeRecordType, foodIds, id);
+    const result = await foodDao.insertFoodIntakeRecord(foodIntakeRecordType, basketFoods, id);
 
     console.log('insertResult', result);
         
@@ -122,6 +123,41 @@ exports.saveFoodRecord = async function (req, res) {
 
   } catch (err) {
     logger.error(`App - saveFoodRecord Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+}
+
+exports.removeFoodRecord = async function(req, res) {
+  const {
+    query: { foodIntakeRecordTypeId, foodId }, 
+    verifiedToken: { id },
+  } = req;
+
+  if (!foodIntakeRecordTypeId || !foodId) return res.json({
+    isSuccess: false,
+    code: 400,
+    message: "식사 시기 또는 음식 정보가 누락되었습니다.",
+  });
+
+  try {
+    const result = await foodDao.removeFoodIntakeRecordSub(foodIntakeRecordTypeId, foodId, id);
+        
+    if (result) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "음식 삭제 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "음식 삭제 실패",
+      });
+    }
+
+  } catch (err) {
+    logger.error(`App - removeFoodRecord Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
 }

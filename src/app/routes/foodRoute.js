@@ -7,4 +7,6 @@ module.exports = function (app) {
   app.get('/food-record', jwtMiddleware, food.getFoodRecord);
 
   app.post('/food-record', jwtMiddleware, food.saveFoodRecord);
+
+  app.delete('/food-record', jwtMiddleware, food.removeFoodRecord);
 };

@@ -67,10 +67,10 @@ exports.getFoodRecord = async function (id) {
   return foodRecordRows;
 }
 
-exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, foodIds, userId) {
+exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, basketFoods, userId) {
   const connection = await pool.getConnection(async (conn) => conn);
 
-  if (!(foodIntakeRecordTypeId && foodIds && userId)) return false;
+  if (!(foodIntakeRecordTypeId && basketFoods && userId)) throw new Error('누락된 정보가 있습니다.');
 
   try {
 
@@ -93,6 +93,8 @@ exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, foodIds
 
     console.log('isExistFoodIntakeRecordRows', isExistFoodIntakeRecordRows);
 
+    let foodIntakeRecordId = isExistFoodIntakeRecordRows[0]?.foodIntakeRecordId;
+
     // 오늘 추가된 FoodIntakeRecord header가 없으면 header를 추가해줌
     if (!isExistFoodIntakeRecordRows.length) {
       // foodIntakeRecord
@@ -112,8 +114,12 @@ exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, foodIds
     // 생성된 header의 id를 가지고 detail 정보를 생성, 단 food가 중복되면 에러 발생시킴
     // foodIntakeRecordSub
     const insertFoodIntakeRecordSubQuery = `
-      INSERT INTO foodIntakeRecordSub (foodIntakeRecordId, foodIntakeRecordTypeId, foodId)
-      VALUES (?, ?, ?);
+      INSERT INTO foodIntakeRecordSub (foodIntakeRecordId, foodIntakeRecordTypeId, foodId, 
+                                       foodAmount, calorie, protein,
+                                       phosphorus, potassium, sodium)
+      VALUES (?, ?, ?,
+              ?, ?, ?,
+              ?, ?, ?);
     `;
 
     const isExistFoodQuery = `
@@ -124,7 +130,9 @@ exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, foodIds
         AND foodId = ?;
     `;
 
-    for (const foodId of foodIds) {
+    for (const basketFood of basketFoods) {
+      const { foodId, foodAmount, calorie, protein, phosphorus, potassium, sodium } = basketFood;
+
       const isExistFoodParams = [foodIntakeRecordId, foodIntakeRecordTypeId, foodId];
       const [isExistFoodResult] = await connection.query(
         isExistFoodQuery,
@@ -137,7 +145,7 @@ exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, foodIds
         throw new Error('이미 추가된 음식입니다.');
       }
 
-      const insertFoodIntakeRecordSubParams = [foodIntakeRecordId, foodIntakeRecordTypeId, foodId];
+      const insertFoodIntakeRecordSubParams = [foodIntakeRecordId, foodIntakeRecordTypeId, foodId, +foodAmount, calorie, protein, phosphorus, potassium, sodium];
       await connection.query(insertFoodIntakeRecordSubQuery, insertFoodIntakeRecordSubParams);
     }
 
@@ -151,7 +159,56 @@ exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, foodIds
     connection.release();
 
     logger.error(`App - insertFoodIntakeRecord Query error\n: ${err.message}`);
-    console.log(err);
+
+    return false;
+  }
+}
+
+exports.removeFoodIntakeRecordSub = async function (foodIntakeRecordTypeId, foodId, userId) {
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  try {
+    await connection.beginTransaction(); // START TRANSACTION
+
+    const getFoodIntakeRecordIdQuery = `
+      SELECT foodIntakeRecordId 
+      FROM foodIntakeRecord WHERE foodIntakeRecordTypeId = ? AND userId = ? AND date(createdAt) = date(now());
+    `;
+
+    const getFoodIntakeRecordIdParams = [foodIntakeRecordTypeId, userId];
+    const [foodIntakeRecordRow] = await connection.query(
+      getFoodIntakeRecordIdQuery,
+      getFoodIntakeRecordIdParams
+    );
+
+    if (foodIntakeRecordRow.length) {
+      const removeFoodIntakeRecordSubQuery = `
+        DELETE FROM foodIntakeRecordSub 
+        WHERE foodIntakeRecordId = ? AND foodIntakeRecordTypeId = ? AND foodId = ?;
+      `;
+
+      const removeFoodIntakeRecordSubParams = [foodIntakeRecordRow[0].foodIntakeRecordId, foodIntakeRecordTypeId, foodId];
+      const [removeFoodIntakeRecordSubResult] = await connection.query(
+        removeFoodIntakeRecordSubQuery,
+        removeFoodIntakeRecordSubParams
+      );
+
+      if(removeFoodIntakeRecordSubResult.affectedRows < 1) throw new Error('삭제할 음식이 존재하지 않습니다.');
+    }
+
+
+    await connection.commit(); // COMMIT
+    connection.release();
+
+    return true;
+
+  } catch (err) {
+    console.log('err', err);
+
+    await connection.rollback(); // COMMIT
+    connection.release();
+
+    logger.error(`App - removeFoodIntakeRecordSub Query error\n: ${err.message}`);
 
     return false;
   }
