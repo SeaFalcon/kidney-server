@@ -44,7 +44,7 @@ exports.findByFoodName = async function (foodName, userId) {
   return foodIngredientRows;
 }
 
-exports.getFoodRecord = async function (id) {
+exports.getFoodRecord = async function (userId) {
   const connection = await pool.getConnection(async (conn) => conn);
   const getFoodRecordQuery = `
     SELECT fir.foodIntakeRecordTypeId, f.*
@@ -57,7 +57,7 @@ exports.getFoodRecord = async function (id) {
       AND date(createdAt) = date(now());
   `;
 
-  const getFoodRecordParams = [id];
+  const getFoodRecordParams = [userId];
   const [foodRecordRows] = await connection.query(
     getFoodRecordQuery,
     getFoodRecordParams
@@ -135,6 +135,8 @@ exports.getNutrition = async function(id){
 
 exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, basketFoods, userId) {
   const connection = await pool.getConnection(async (conn) => conn);
+
+  console.log('foodIntakeRecordTypeId, basketFoods, userId', foodIntakeRecordTypeId, basketFoods, userId);
 
   if (!(foodIntakeRecordTypeId && basketFoods && userId)) throw new Error('누락된 정보가 있습니다.');
 
