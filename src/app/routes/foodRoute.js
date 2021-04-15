@@ -13,4 +13,6 @@ module.exports = function (app) {
   app.post('/food-record', jwtMiddleware, food.saveFoodRecord);
 
   app.delete('/food-record', jwtMiddleware, food.removeFoodRecord);
+
+  app.delete('/food-record/:foodIntakeRecordId', jwtMiddleware, food.removeFoodRecordsByMealTime);
 };

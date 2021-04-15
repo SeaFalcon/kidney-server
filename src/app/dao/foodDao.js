@@ -47,7 +47,7 @@ exports.findByFoodName = async function (foodName, userId) {
 exports.getFoodRecord = async function (userId) {
   const connection = await pool.getConnection(async (conn) => conn);
   const getFoodRecordQuery = `
-    SELECT fir.foodIntakeRecordTypeId, f.*
+    SELECT fir.foodIntakeRecordId, fir.foodIntakeRecordTypeId, f.*
     FROM foodIntakeRecord fir
             JOIN foodIntakeRecordSub firs
                   ON fir.foodIntakeRecordId = firs.foodIntakeRecordId AND
@@ -233,6 +233,24 @@ exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, basketF
   }
 }
 
+exports.removeFoodRecordsByMealTime = async function (foodIntakeRecordId) {
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  const removeFoodRecordsByMealTimeQuery = `
+    DELETE FROM foodIntakeRecordSub 
+    WHERE foodIntakeRecordId = ?;
+  `;
+
+  const removeFoodRecordsByMealTimeParams = [foodIntakeRecordId];
+  const [removeFoodRecordsByMealTimeResult] = await connection.query(
+    removeFoodRecordsByMealTimeQuery,
+    removeFoodRecordsByMealTimeParams
+  );
+
+  connection.release();
+
+  return removeFoodRecordsByMealTimeResult;
+}
 exports.removeFoodIntakeRecordSub = async function (foodIntakeRecordTypeId, foodId, userId) {
   const connection = await pool.getConnection(async (conn) => conn);
 
@@ -262,7 +280,7 @@ exports.removeFoodIntakeRecordSub = async function (foodIntakeRecordTypeId, food
         removeFoodIntakeRecordSubParams
       );
 
-      if(removeFoodIntakeRecordSubResult.affectedRows < 1) throw new Error('삭제할 음식이 존재하지 않습니다.');
+      if (removeFoodIntakeRecordSubResult.affectedRows < 1) throw new Error('삭제할 음식이 존재하지 않습니다.');
     }
 
 

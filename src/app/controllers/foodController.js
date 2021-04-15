@@ -63,7 +63,7 @@ exports.getFoodRecord = async function (req, res) {
       snack: [],
     };
 
-    for(const foodRecord of foodRecordRows){
+    for (const foodRecord of foodRecordRows) {
       diet[convertMealTime[foodRecord.foodIntakeRecordTypeId]].push(foodRecord);
     }
 
@@ -204,7 +204,7 @@ exports.getNutrition = async function(req, res){
 
 exports.saveFoodRecord = async function (req, res) {
   const {
-    body: { foodIntakeRecordType, basketFoods }, 
+    body: { foodIntakeRecordType, basketFoods },
     verifiedToken: { id },
   } = req;
 
@@ -217,11 +217,11 @@ exports.saveFoodRecord = async function (req, res) {
   });
 
   try {
-    
+
     const result = await foodDao.insertFoodIntakeRecord(foodIntakeRecordType, basketFoods, id);
 
     console.log('insertResult', result);
-        
+
     if (result) {
       return res.json({
         isSuccess: true,
@@ -242,9 +242,9 @@ exports.saveFoodRecord = async function (req, res) {
   }
 }
 
-exports.removeFoodRecord = async function(req, res) {
+exports.removeFoodRecord = async function (req, res) {
   const {
-    query: { foodIntakeRecordTypeId, foodId }, 
+    query: { foodIntakeRecordTypeId, foodId },
     verifiedToken: { id },
   } = req;
 
@@ -256,7 +256,7 @@ exports.removeFoodRecord = async function(req, res) {
 
   try {
     const result = await foodDao.removeFoodIntakeRecordSub(foodIntakeRecordTypeId, foodId, id);
-        
+
     if (result) {
       return res.json({
         isSuccess: true,
@@ -273,6 +273,42 @@ exports.removeFoodRecord = async function(req, res) {
 
   } catch (err) {
     logger.error(`App - removeFoodRecord Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+}
+
+exports.removeFoodRecordsByMealTime = async function (req, res) {
+  const {
+    params: { foodIntakeRecordId },
+    // verifiedToken: { id },
+  } = req;
+
+  if (!foodIntakeRecordId) return res.json({
+    isSuccess: false,
+    code: 400,
+    message: "식단 아이디가 누락되었습니다.",
+  });
+
+  try {
+    const result = await foodDao.removeFoodRecordsByMealTime(foodIntakeRecordId);
+    console.log(result);
+
+    if (result) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "식단 삭제 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "식단 삭제 실패",
+      });
+    }
+
+  } catch (err) {
+    logger.error(`App - removeFoodRecordsByMealTime Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
 }
