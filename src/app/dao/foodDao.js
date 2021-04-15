@@ -53,7 +53,7 @@ exports.getFoodRecord = async function (id) {
                   ON fir.foodIntakeRecordId = firs.foodIntakeRecordId AND
                     fir.foodIntakeRecordTypeId = firs.foodIntakeRecordTypeId
             JOIN food f ON firs.foodId = f.foodId
-    WHERE fir.userId = 1
+    WHERE fir.userId = ?
       AND date(createdAt) = date(now());
   `;
 
@@ -64,7 +64,73 @@ exports.getFoodRecord = async function (id) {
   );
   connection.release();
 
+  console.log(foodRecordRows);
+
   return foodRecordRows;
+}
+
+//날짜 별 foodRecord 조회
+exports.getFoodRecordWithDate = async function(id, date){
+  const connection = await pool.getConnection(async (conn) => conn);
+  console.log("3");
+  console.log(id + " : " + date);
+  try {
+    const getFoodRecordWithDateQuery = `
+   SELECT fir.foodIntakeRecordTypeId, f.*
+    FROM foodIntakeRecord fir
+            JOIN foodIntakeRecordSub firs
+                  ON fir.foodIntakeRecordId = firs.foodIntakeRecordId AND
+                    fir.foodIntakeRecordTypeId = firs.foodIntakeRecordTypeId
+            JOIN food f ON firs.foodId = f.foodId
+    WHERE fir.userId = ?
+      AND date(createdAt) = date(concat('', ?));
+  `;
+
+    const getFoodRecordWithDateParams = [id, date];
+    const [foodRecordWithDateRows] = await connection.query(
+        getFoodRecordWithDateQuery,
+        getFoodRecordWithDateParams
+    );
+
+    connection.release()
+    return foodRecordWithDateRows;
+  }
+  catch (err){
+    console.log("err");
+    console.log(err);
+
+  }
+
+
+
+}
+
+// 날짜 별 영양소 조회
+exports.getNutrition = async function(id){
+  const connection = await pool.getConnection(async (conn) => conn);
+
+
+  const getNutritionQuery = `
+   SELECT f.calorie, f.protein, f.phosphorus, f.sodium, f.potassium
+    FROM foodIntakeRecord fir
+            JOIN foodIntakeRecordSub firs
+                  ON fir.foodIntakeRecordId = firs.foodIntakeRecordId AND
+                    fir.foodIntakeRecordTypeId = firs.foodIntakeRecordTypeId
+            JOIN food f ON firs.foodId = f.foodId
+    WHERE fir.userId = ?
+      AND date(createdAt) = date(now());
+  `;
+  const getNutritionParams = [id];
+  const [NutritionRows] = await connection.query(
+      getNutritionQuery,
+      getNutritionParams
+  );
+  connection.release();
+
+  console.log("영양소 계산 db 들어 왔어요~")
+  console.log(NutritionRows)
+  return NutritionRows;
+
 }
 
 exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, basketFoods, userId) {
@@ -93,7 +159,8 @@ exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, basketF
 
     console.log('isExistFoodIntakeRecordRows', isExistFoodIntakeRecordRows);
 
-    let foodIntakeRecordId = isExistFoodIntakeRecordRows[0]?.foodIntakeRecordId;
+    let foodIntakeRecordId = isExistFoodIntakeRecordRows[0] ? isExistFoodIntakeRecordRows[0].foodIntakeRecordId : undefined;
+
 
     // 오늘 추가된 FoodIntakeRecord header가 없으면 header를 추가해줌
     if (!isExistFoodIntakeRecordRows.length) {

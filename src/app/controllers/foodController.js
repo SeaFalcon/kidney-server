@@ -67,6 +67,7 @@ exports.getFoodRecord = async function (req, res) {
       diet[convertMealTime[foodRecord.foodIntakeRecordTypeId]].push(foodRecord);
     }
 
+    console.log(diet);
     if (foodRecordRows.length) {
       return res.json({
         isSuccess: true,
@@ -86,6 +87,120 @@ exports.getFoodRecord = async function (req, res) {
     return res.status(500).send(`Error: ${err.message}`);
   }
 };
+
+// foodRecord 날짜 별 가져오기
+exports.getFoodRecordWithDate = async function (req, res) {
+  console.log("getFoodRecordWithDate 들어옴");
+
+  const {
+    body: {date},
+    verifiedToken: { id },
+  } = req;
+
+  console.log(date)
+
+  try {
+    console.log("1");
+    const foodRecordRows = await foodDao.getFoodRecordWithDate(id, date);
+    console.log("4");
+    console.log(foodRecordRows);
+
+
+    let diet = {
+      breakfast: [],
+      lunch: [],
+      dinner: [],
+      snack: [],
+    };
+
+    for(const foodRecord of foodRecordRows){
+      diet[convertMealTime[foodRecord.foodIntakeRecordTypeId]].push(foodRecord);
+    }
+
+    if (foodRecordRows.length) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "식사 정보 가져오기 성공",
+        diet
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "식사 정보 가져오기 실패 (식사 검색결과가 없습니다)",
+      });
+    }
+  } catch (err) {
+    console.log("2");
+    logger.error(`App - getFoodRecordWithDate Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+};
+
+// nutrition 계산 후 가져오기
+exports.getNutrition = async function(req, res){
+  const {
+    verifiedToken: { id },
+  } = req;
+
+  try {
+    console.log("들어왔어요~~");
+    const nutritionRows = await foodDao.getNutrition(id);
+    console.log("nutritionRow : ")
+    console.log(nutritionRows.length);
+    let calorie =0;
+    let protein = 0;
+    let phosphorus = 0;
+    let potassium = 0;
+    let sodium = 0;
+
+    let i = 0;
+    while(i<nutritionRows.length){
+      calorie += nutritionRows[i].calorie;
+      protein += nutritionRows[i].protein;
+      phosphorus += nutritionRows[i].phosphorus;
+      potassium += nutritionRows[i].potassium;
+      sodium += nutritionRows[i].sodium
+      console.log(nutritionRows[i]);
+      i++;
+    }
+
+    console.log("칼로리 : ")
+    console.log(calorie);
+
+    let nutrition = {
+      caloire : calorie,
+      protein : protein,
+      phosphorus : phosphorus,
+      potassium : potassium,
+      sodium: sodium,
+    };
+    console.log("")
+    console.log(nutrition);
+
+
+    if (nutritionRows.length) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "영양소 정보 가져오기 성공",
+        nutrition
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "영양소 정보 가져오기 실패",
+      });
+    }
+  } catch (err) {
+    console.log("2");
+    logger.error(`App - getNutrition Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+
+}
 
 exports.saveFoodRecord = async function (req, res) {
   const {
