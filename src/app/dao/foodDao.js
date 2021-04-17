@@ -76,7 +76,7 @@ exports.getFoodRecordWithDate = async function(id, date){
   console.log(id + " : " + date);
   try {
     const getFoodRecordWithDateQuery = `
-   SELECT fir.foodIntakeRecordTypeId, f.*
+   SELECT fir.foodIntakeRecordId, fir.foodIntakeRecordTypeId, f.*
     FROM foodIntakeRecord fir
             JOIN foodIntakeRecordSub firs
                   ON fir.foodIntakeRecordId = firs.foodIntakeRecordId AND

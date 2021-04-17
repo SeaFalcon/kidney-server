@@ -24,7 +24,8 @@ exports.findByFoodName = async function (req, res) {
         isSuccess: true,
         code: 200,
         message: "음식 정보 가져오기 성공",
-        foods: foodIngredientRows
+        foods: foodIngredientRows,
+        searchQuery: foodName
       });
     } else {
       return res.json({
