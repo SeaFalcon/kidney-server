@@ -192,7 +192,8 @@ exports.getNutrition = async function(req, res){
       return res.json({
         isSuccess: false,
         code: 400,
-        message: "영양소 정보 가져오기 실패",
+        message: "영양소 정보가 없습니다.",
+        nutrition
       });
     }
   } catch (err) {
