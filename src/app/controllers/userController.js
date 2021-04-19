@@ -8,8 +8,8 @@ const crypto = require("crypto");
 const secret_config = require("../../../config/secret");
 
 const userDao = require("../dao/userDao");
-//const {Calc} = require("../module/Calc");
-let {Mheight, age, Mcalorie, Fcalorie, potassium, unnomalprotein, nomalprotein, unomalPhosphorus, nomalPhosphorus, Sodium} = require("../module/Calc");
+let { calorieFunctions, getAgeFromBirth, getPotassium,
+  getPhosphorus, getProtein, getSodiumByAge } = require("../module/Calc");
 
 /**
  update : 2020.10.4
@@ -113,27 +113,19 @@ exports.signUp = async function (req, res) {
       activityId,
     ];
 
-
     const [[activityRow]] = await userDao.selectActivity(activityId);
     const [kidneyTypeRows] = await userDao.selectKidney(kidneyType);
-    let Mheight2 = Mheight(height);
-    let age2 = age(birth);
-    let activity = activityRow.pa;
-    let kidney = kidneyTypeRows.protein;
+
+    const age = getAgeFromBirth(birth);
+    const activityCoefficient = activityRow.pa;
+    const proteinCoefficientByKidneyType = kidneyTypeRows.protein;
 
     const inserNutritionParams = [
-      (requiredCalorie =
-          gender === "M"
-              ? Mcalorie(weight, age2, Mheight2, activity)
-              : Fcalorie(weight, age2, Mheight2, activity)),
-      (requiredPhosphorus =
-          kidneyType === 2 ? unomalPhosphorus(Mheight2) : nomalPhosphorus(age2)),
-      (requiredSodium = Sodium(age2)),
-      (requiredPotassium = potassium()),
-      (requiredProtein =
-          kidneyType === 7
-              ? unnomalprotein(gender, age2)
-              : nomalprotein(gender, Mheight2, kidney)),
+      calorieFunctions[kidneyType]({ gender, weight, age, height, activityCoefficient }),
+      getPhosphorus(kidneyType, height, age),
+      getSodiumByAge(age),
+      getPotassium(),
+      getProtein(kidneyType, gender, height, proteinCoefficientByKidneyType, age),
     ];
 
     console.log(inserNutritionParams);
@@ -443,30 +435,22 @@ exports.saveKakaoUserInfo = async function (req, res) {
     const [[activityRow]] = await userDao.selectActivity(activityId);
     const [kidneyTypeRows] = await userDao.selectKidney(kidneyType);
 
-    let Mheight2 = Mheight(height);
-    let age2 = age(birth);
-    let activity = activityRow.pa;
-    let kidney = kidneyTypeRows.protein;
+    const age = getAgeFromBirth(birth);
+    const activityCoefficient = activityRow.pa;
+    const proteinCoefficientByKidneyType = kidneyTypeRows.protein;
 
     const inserNutritionParams = [
-      (requiredCalorie =
-          gender === "M"
-              ? Mcalorie(weight, age2, Mheight2, activity)
-              : Fcalorie(weight, age2, Mheight2, activity)),
-      (requiredPhosphorus =
-          kidneyType === 2 ? unomalPhosphorus(Mheight2) : nomalPhosphorus(age2)),
-      (requiredSodium = Sodium(age2)),
-      (requiredPotassium = potassium()),
-      (requiredProtein =
-          kidneyType === 7
-              ? unnomalprotein(gender, age2)
-              : nomalprotein(gender, Mheight2, kidney)),
+      calorieFunctions[kidneyType]({ gender, weight, age, height, activityCoefficient }),
+      getPhosphorus(kidneyType, height, age),
+      getSodiumByAge(age),
+      getPotassium(),
+      getProtein(kidneyType, gender, height, proteinCoefficientByKidneyType, age),
     ];
 
     console.log(inserNutritionParams);
 
     const inserNutritionRows = await userDao.insertuserRequiredNuturition(
-        inserNutritionParams
+      inserNutritionParams
     );
 
 
@@ -603,8 +587,8 @@ exports.changeBasicInfo = async function (req, res) {
 
   try {
     const [updateBasicInfoRow] = await userDao.updateBasicInfo(
-        [weight, kidneyType, activityId],
-        id
+      [weight, kidneyType, activityId],
+      id
     );
 
 
@@ -613,22 +597,24 @@ exports.changeBasicInfo = async function (req, res) {
     const [[activityRow]] = await userDao.selectActivity(activityId);
     console.log(activityRow.pa);
     const [kidneyTypeRows] = await userDao.selectKidney(kidneyType);
-    let Mheight2 =  Mheight(userRow[0].height);
-    let age2 =  age(userRow[0].birth);
-    let activity = activityRow.pa;
-    let kidney = kidneyTypeRows.protein;
 
-      requiredCalorie = (userRow[0].gender === "M" ? Mcalorie(weight, age2, Mheight2, activity) : Fcalorie(weight, age2, Mheight2, activity));
-      requiredPhosphorus = (kidneyType === 2 ? unomalPhosphorus(Mheight2) : nomalPhosphorus(age2));
-      requiredProtein = (kidneyType === 7 ? unnomalprotein(userRow[0].gender, age2) : nomalprotein(userRow[0].gender, Mheight2, kidney));
+    const height = userRow[0].height;
+    const age = getAgeFromBirth(userRow[0].birth);
+    const gender = userRow[0].gender;
+    const activityCoefficient = activityRow.pa;
+    const proteinCoefficientByKidneyType = kidneyTypeRows.protein;
 
-          console.log("calorie : " + requiredCalorie);
-          console.log("phosphrus : "  + requiredPhosphorus);
-          console.log("protein : " + requiredProtein);
+    const requiredCalorie = calorieFunctions[kidneyType]({ gender, weight, age, height, activityCoefficient });
+    const requiredPhosphorus = getPhosphorus(kidneyType, height, age);
+    const requiredProtein = getProtein(kidneyType, gender, height, proteinCoefficientByKidneyType, age);
+
+    console.log("calorie : " + requiredCalorie);
+    console.log("phosphrus : " + requiredPhosphorus);
+    console.log("protein : " + requiredProtein);
 
     const [chageBasicNutritionRow] = await userDao.chageBasicNutrition(
-        [requiredCalorie, requiredPhosphorus, requiredProtein],
-        id
+      [requiredCalorie, requiredPhosphorus, requiredProtein],
+      id
     );
 
     if (updateBasicInfoRow.affectedRows && chageBasicNutritionRow.affectedRows) {
@@ -716,7 +702,7 @@ exports.changeBasicNutrition = async function (req, res) {
   } = req;
 
   console.log(req.body);
-  
+
   try {
     const [updateBasicNutritionRow] = await userDao.updateBasicNutrition(
       [calorie, protein, phosphorus, potassium, sodium],

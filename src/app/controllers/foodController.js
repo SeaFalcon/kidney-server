@@ -94,7 +94,7 @@ exports.getFoodRecordWithDate = async function (req, res) {
   console.log("getFoodRecordWithDate 들어옴");
 
   const {
-    body: {date},
+    body: { date },
     verifiedToken: { id },
   } = req;
 
@@ -114,7 +114,7 @@ exports.getFoodRecordWithDate = async function (req, res) {
       snack: [],
     };
 
-    for(const foodRecord of foodRecordRows){
+    for (const foodRecord of foodRecordRows) {
       diet[convertMealTime[foodRecord.foodIntakeRecordTypeId]].push(foodRecord);
     }
 
@@ -140,7 +140,7 @@ exports.getFoodRecordWithDate = async function (req, res) {
 };
 
 // nutrition 계산 후 가져오기
-exports.getNutrition = async function(req, res){
+exports.getNutrition = async function (req, res) {
   const {
     verifiedToken: { id },
   } = req;
@@ -150,14 +150,14 @@ exports.getNutrition = async function(req, res){
     const nutritionRows = await foodDao.getNutrition(id);
     console.log("nutritionRow : ")
     console.log(nutritionRows.length);
-    let calorie =0;
+    let calorie = 0;
     let protein = 0;
     let phosphorus = 0;
     let potassium = 0;
     let sodium = 0;
 
     let i = 0;
-    while(i<nutritionRows.length){
+    while (i < nutritionRows.length) {
       calorie += nutritionRows[i].calorie;
       protein += nutritionRows[i].protein;
       phosphorus += nutritionRows[i].phosphorus;
@@ -171,10 +171,10 @@ exports.getNutrition = async function(req, res){
     console.log(calorie);
 
     let nutrition = {
-      caloire : calorie,
-      protein : protein,
-      phosphorus : phosphorus,
-      potassium : potassium,
+      caloire: calorie,
+      protein: protein,
+      phosphorus: phosphorus,
+      potassium: potassium,
       sodium: sodium,
     };
     console.log("")
