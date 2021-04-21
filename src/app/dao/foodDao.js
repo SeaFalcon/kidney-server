@@ -251,7 +251,7 @@ exports.removeFoodRecordsByMealTime = async function (foodIntakeRecordId) {
 
   return removeFoodRecordsByMealTimeResult;
 }
-exports.removeFoodIntakeRecordSub = async function (foodIntakeRecordTypeId, foodId, userId) {
+exports.removeFoodIntakeRecordSub = async function (foodIntakeRecordTypeId, foodId, userId, date) {
   const connection = await pool.getConnection(async (conn) => conn);
 
   try {
@@ -259,10 +259,10 @@ exports.removeFoodIntakeRecordSub = async function (foodIntakeRecordTypeId, food
 
     const getFoodIntakeRecordIdQuery = `
       SELECT foodIntakeRecordId 
-      FROM foodIntakeRecord WHERE foodIntakeRecordTypeId = ? AND userId = ? AND date(createdAt) = date(now());
+      FROM foodIntakeRecord WHERE foodIntakeRecordTypeId = ? AND userId = ? AND date(createdAt) = date(concat('', ?));
     `;
 
-    const getFoodIntakeRecordIdParams = [foodIntakeRecordTypeId, userId];
+    const getFoodIntakeRecordIdParams = [foodIntakeRecordTypeId, userId, date];
     const [foodIntakeRecordRow] = await connection.query(
       getFoodIntakeRecordIdQuery,
       getFoodIntakeRecordIdParams

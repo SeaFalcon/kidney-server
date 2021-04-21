@@ -246,18 +246,18 @@ exports.saveFoodRecord = async function (req, res) {
 
 exports.removeFoodRecord = async function (req, res) {
   const {
-    query: { foodIntakeRecordTypeId, foodId },
+    query: { foodIntakeRecordTypeId, foodId, date },
     verifiedToken: { id },
   } = req;
 
-  if (!foodIntakeRecordTypeId || !foodId) return res.json({
+  if (!foodIntakeRecordTypeId || !foodId || !date) return res.json({
     isSuccess: false,
     code: 400,
     message: "식사 시기 또는 음식 정보가 누락되었습니다.",
   });
 
   try {
-    const result = await foodDao.removeFoodIntakeRecordSub(foodIntakeRecordTypeId, foodId, id);
+    const result = await foodDao.removeFoodIntakeRecordSub(foodIntakeRecordTypeId, foodId, id, date);
 
     if (result) {
       return res.json({
