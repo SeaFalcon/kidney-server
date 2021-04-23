@@ -15,6 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.891.0",
     "axios": "^0.21.1",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
@@ -24,6 +25,8 @@
     "https": "^1.0.0",
     "jsonwebtoken": "^8.5.1",
     "method-override": "^3.0.0",
+    "multer": "^1.4.2",
+    "multer-s3": "^2.9.0",
     "mysql2": "^2.0.0",
     "regex-email": "^1.0.2",
     "winston": "^3.2.1",
