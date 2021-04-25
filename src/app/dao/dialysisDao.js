@@ -69,3 +69,42 @@ exports.insertHemodialysisMemo = async function ({ imageUrl, recordDate, memo, u
     return [false, err.message];
   }
 }
+
+exports.getHemodialysisMemo = async function (userId, year, month) {
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  let hemodialysisMemos = [];
+
+  const getHemodialysisHeaderMemoQuery = `
+      SELECT dialysisId, recordDate
+      FROM dialysisHeader 
+      WHERE userId = ? AND YEAR(recordDate) = ? AND MONTH(recordDate) = ? AND dialysisTypeId = ?;
+    `;
+
+  const getHemodialysisHeaderMemoParams = [userId, year, month, dialysisTypes.HEMODIALYSIS];
+  const [getHemodialysisHeaderMemoRows] = await connection.query(getHemodialysisHeaderMemoQuery, getHemodialysisHeaderMemoParams);
+
+  const getHemodialysisDetailMemoQuery = `
+    SELECT memo, photo
+    FROM dialysisDetail 
+    WHERE dialysisId = ?;
+  `;
+
+  if (getHemodialysisHeaderMemoRows.length) {
+    for (dialysisMemo of getHemodialysisHeaderMemoRows) {
+      const { dialysisId, recordDate } = dialysisMemo;
+
+      const getHemodialysisDetailMemoParams = [dialysisId];
+      const [getHemodialysisDetailMemoRows] = await connection.query(getHemodialysisDetailMemoQuery, getHemodialysisDetailMemoParams);
+
+      if (getHemodialysisDetailMemoRows.length) {
+        const { memo, photo } = getHemodialysisDetailMemoRows[0];
+        hemodialysisMemos.push({ dialysisId, recordDate, memo, photo });
+      }
+    }
+  }
+
+  connection.release();
+
+  return hemodialysisMemos
+}
