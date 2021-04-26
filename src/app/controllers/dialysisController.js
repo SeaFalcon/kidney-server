@@ -3,23 +3,34 @@ const dialysisDao = require('../dao/dialysisDao');
 exports.saveHemodialysisMemo = async function (req, res) {
   const { file, body: { date, memo }, verifiedToken: { id }, } = req;
 
-  try {
-    if (file.location) {
-      const [isSuccess, message] = await dialysisDao.insertHemodialysisMemo({ imageUrl: file.location, recordDate: date, memo, userId: id });
+  if (!date || !memo) {
+    return res.json({
+      isSuccess: false,
+      code: 400,
+      message: "날짜 혹은 메모정보가 누락 되었습니다.",
+    });
+  }
 
-      if (isSuccess) {
-        res.json({
-          isSuccess: true,
-          code: 200,
-          message,
-        });
-      } else {
-        res.json({
-          isSuccess: false,
-          code: 400,
-          message,
-        });
-      }
+  try {
+
+    const [isSuccess, message] = await dialysisDao.insertHemodialysisMemo({
+      imageUrl: (file && file.location) ? file.location : null,
+      recordDate: date, memo,
+      userId: id
+    });
+
+    if (isSuccess) {
+      res.json({
+        isSuccess: true,
+        code: 200,
+        message,
+      });
+    } else {
+      res.json({
+        isSuccess: false,
+        code: 400,
+        message,
+      });
     }
   } catch (err) {
     // res.status(500).send('서버 에러');
@@ -51,7 +62,7 @@ exports.getHemodialysisMemo = async function (req, res) {
         message: '투석일지 불러오기에 성공했습니다.',
         hemodialysisMemos
       })
-    }else{
+    } else {
       res.json({
         code: 200,
         isSuccess: false,

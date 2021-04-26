@@ -58,7 +58,7 @@ exports.insertHemodialysisMemo = async function ({ imageUrl, recordDate, memo, u
     await connection.commit(); // COMMIT
     connection.release();
 
-    return [true, '투석일지 저장에 성공했습니다.'];
+    return [true, '혈액투석 메모 저장에 성공했습니다.'];
   } catch (err) {
     console.log('err', err);
     await connection.rollback(); // COMMIT
