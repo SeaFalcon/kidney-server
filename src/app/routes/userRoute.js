@@ -12,6 +12,8 @@ module.exports = function (app) {
   app.post("/login", user.signIn);
   app.post("/emailCheck", user.Emailcheck);
   app.post("/nicknameCheck", user.Nicknamecheck);
+  app.post("/user/saveKidney01", jwtMiddleware, user.saveKidney01);
+  app.post("/user/saveKidney02", jwtMiddleware, user.saveKidney02);
 
   app.post("/kakao", user.kakaoLogin);
   app.post("/user/kakao", jwtMiddleware, user.saveKakaoUserInfo);
@@ -20,6 +22,7 @@ module.exports = function (app) {
 
   app.put("/user", jwtMiddleware, user.changeBasicInfo);
   app.put("/user/nutirition", jwtMiddleware, user.changeBasicNutrition);
+
 
   app.get("/me", jwtMiddleware, user.getMyInfo);
 };

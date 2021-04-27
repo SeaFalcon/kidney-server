@@ -211,6 +211,7 @@ exports.saveFoodRecord = async function (req, res) {
   } = req;
 
   console.log(foodIntakeRecordType, basketFoods);
+  console.log(id);
 
   if (!foodIntakeRecordType || !basketFoods.length) return res.json({
     isSuccess: false,

@@ -695,7 +695,7 @@ exports.getMyInfo = async function (req, res) {
 };
 
 //changeNutrition API
-exports.changeBasicNutrition = async function (req, res) {
+exports.saveKidney01 = async function (req, res) {
   const {
     body: { calorie, protein, phosphorus, potassium, sodium },
     verifiedToken: { id },
@@ -728,3 +728,126 @@ exports.changeBasicNutrition = async function (req, res) {
     return res.status(500).send(`Error: ${err.message}`);
   }
 };
+
+exports.changeBasicNutrition = async function (req, res) {
+  const {
+    body: { calorie, protein, phosphorus, potassium, sodium },
+    verifiedToken: { id },
+  } = req;
+
+
+  try {
+    const [updateBasicNutritionRow] = await userDao.updateBasicNutrition(
+        [calorie, protein, phosphorus, potassium, sodium],
+        id
+    );
+
+
+    if (updateBasicNutritionRow.affectedRows) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "영양소 변경 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "영양소 변경 실패",
+      });
+    }
+  } catch (err) {
+    logger.error(`App - changeBasicNutrition Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+};
+
+
+//kidney 저장
+exports.saveKidney01 = async function (req, res) {
+  console.log("들어옴")
+  const {
+    verifiedToken: { id },
+    body: { exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo},
+
+  } = req;
+
+  console.log(req.body);
+  console.log(req.verifiedToken);
+
+  try{
+
+  const insertsaveKidney01Params = [
+    exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, id
+  ];
+
+
+  const userId = id;
+  const typeId = 1;
+
+  const savekidney01Row = await userDao.saveKidney01(insertsaveKidney01Params, userId, typeId);
+
+    if (savekidney01Row.affectedRows) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "투석일지 저장 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "투석일지 저장 실패",
+      });
+    }
+  } catch (err) {
+    logger.error(`App - saveKideney01 Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+
+};
+
+// saveKidey02
+exports.saveKidney02 = async function (req, res) {
+  const {
+    verifiedToken: { id },
+    body: { exchangeTime, injectionConcentration, injectionAmount, initialDrainage, dehydration, weight, edema, memo},
+
+  } = req;
+
+  console.log(req.body);
+
+  try{
+
+    const insertsaveKidney02Params = [
+      exchangeTime, injectionConcentration, injectionAmount, initialDrainage, dehydration, weight, edema, memo, id
+    ];
+
+
+    const userId = id;
+    const typeId = 2;
+
+    const savekidney02Row = await userDao.saveKidney02(insertsaveKidney02Params, userId, typeId);
+
+    if (savekidney02Row.affectedRows) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "투석일지 저장 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "투석일지 저장 실패",
+      });
+    }
+  } catch (err) {
+    logger.error(`App - saveKidney02 Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+
+};
+
+
+

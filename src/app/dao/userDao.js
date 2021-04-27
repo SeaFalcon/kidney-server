@@ -336,6 +336,69 @@ async function updateBasicNutrition(basicNutritionParams, id) {
   return updateBasicNutritionRow;
 }
 
+
+// save Kideney
+async function saveKidney01(insertsaveKidney01Params, userId, typeId) {
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  const insertStorageQuery = `
+     INSERT INTO storage (userId, typeId)
+     VALUE (?, ?);
+ `;
+
+  const insertStorageParam = [userId, typeId];
+  const insertStorageRow = await connection.query(
+      insertStorageQuery,
+      insertStorageParam
+
+  )
+  const saveKidney01Query = `
+     INSERT INTO generalDialysis (exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, userId)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    `;
+  const savekidney01Row = await connection.query(
+      saveKidney01Query,
+      insertsaveKidney01Params
+  );
+  await connection.commit();
+  connection.release();
+
+
+  return savekidney01Row;
+}
+
+
+// save Kideney
+async function saveKidney02(insertsaveKidney02Params, userId, typeId) {
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  const insertStorageQuery = `
+     INSERT INTO storage (userId, typeId)
+     VALUE (?, ?);
+ `;
+
+  const insertStorageParam = [userId, typeId];
+  const insertStorageRow = await connection.query(
+      insertStorageQuery,
+      insertStorageParam
+
+  )
+  const saveKidney02Query = `
+     INSERT INTO mechanicalDialysis (exchangeTime, injectionConcentration, injectionAmount, initialDrainage, dehydration, weight, edema, memo, userId)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+    `;
+  const savekidney02Row = await connection.query(
+      saveKidney02Query,
+      insertsaveKidney02Params
+  );
+  await connection.commit();
+  connection.release();
+
+
+  return savekidney02Row;
+}
+
+
 module.exports = {
   userEmailCheck,
   userNicknameCheck,
@@ -357,4 +420,6 @@ module.exports = {
   findNutiritionByID,
   updateBasicNutrition,
   chageBasicNutrition,
+  saveKidney01,
+  saveKidney02
 };
