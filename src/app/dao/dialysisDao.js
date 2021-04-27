@@ -10,7 +10,7 @@ const dialysisTypes = {
 exports.insertHemodialysisMemo = async function ({ imageUrl, recordDate, memo, userId }) {
   const connection = await pool.getConnection(async (conn) => conn);
 
-  if (!(imageUrl, recordDate, memo)) throw new Error('누락된 정보가 있습니다.');
+  if (!(recordDate || memo)) throw new Error('누락된 정보가 있습니다.');
 
   try {
     await connection.beginTransaction(); // START TRANSACTION
@@ -106,5 +106,32 @@ exports.getHemodialysisMemo = async function (userId, year, month) {
 
   connection.release();
 
-  return hemodialysisMemos
+  return hemodialysisMemos;
+}
+
+exports.updateHemodialysisMemo = async function ({ imageUrl, memo, dialysisId }) {
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  if (!(dialysisId || memo)) throw new Error('누락된 정보가 있습니다.');
+
+  try {
+    const updateDialysisDetailQuery = `
+      UPDATE dialysisDetail SET memo = ? ${imageUrl ? ', photo = ? ' : ''}
+      WHERE dialysisId = ?;
+    `;
+
+    const updateDialysisDetailParams = imageUrl ? [memo, imageUrl, dialysisId] : [memo, dialysisId];
+    await connection.query(updateDialysisDetailQuery, updateDialysisDetailParams);
+
+    connection.release();
+
+    return [true, '혈액투석 메모 수정에 성공했습니다.'];
+  } catch (err) {
+    console.log('err', err);
+    connection.release();
+
+    logger.error(`App - updateHemodialysisMemo Query error\n: ${err.message}`);
+
+    return [false, err.message];
+  }
 }

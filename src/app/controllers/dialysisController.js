@@ -53,7 +53,7 @@ exports.getHemodialysisMemo = async function (req, res) {
 
     const hemodialysisMemos = await dialysisDao.getHemodialysisMemo(id, year, month);
 
-    console.log(hemodialysisMemos)
+    // console.log(hemodialysisMemos)
 
     if (hemodialysisMemos.length) {
       res.json({
@@ -79,4 +79,46 @@ exports.getHemodialysisMemo = async function (req, res) {
     console.log('getHemodialysisMemo Error', err)
   }
 
+}
+
+exports.changeHemodialysisMemo = async function (req, res) {
+  const { file, body: { name, dialysisId }, verifiedToken: { id }, } = req;
+
+  if (!name || !dialysisId) {
+    return res.json({
+      isSuccess: false,
+      code: 400,
+      message: "메모 정보가 누락 되었습니다.",
+    });
+  }
+
+  try {
+
+    const [isSuccess, message] = await dialysisDao.updateHemodialysisMemo({
+      imageUrl: (file && file.location) ? file.location : null,
+      memo: name,
+      dialysisId
+    });
+
+    if (isSuccess) {
+      res.json({
+        isSuccess: true,
+        code: 200,
+        message,
+      });
+    } else {
+      res.json({
+        isSuccess: false,
+        code: 400,
+        message,
+      });
+    }
+  } catch (err) {
+    res.json({
+      code: 500,
+      isSuccess: false,
+      message: '서버 오류로 인해 투석일지 수정에 실패했습니다.',
+    });
+    console.log('changeHemodialysisMemo Error', err)
+  }
 }
