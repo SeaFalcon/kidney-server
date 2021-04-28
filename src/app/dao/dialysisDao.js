@@ -28,8 +28,6 @@ exports.insertHemodialysisMemo = async function ({ imageUrl, recordDate, memo, u
       isExistdialysisHeaderParams
     );
 
-    console.log('isExistdialysisHeaderRows', isExistdialysisHeaderRows);
-
     if (isExistdialysisHeaderRows.length) throw new Error('이미 투석일지 / 메모가 작성된 날입니다.');
 
     // foodIntakeRecord
@@ -115,6 +113,10 @@ exports.updateHemodialysisMemo = async function ({ imageUrl, memo, dialysisId })
   if (!(dialysisId || memo)) throw new Error('누락된 정보가 있습니다.');
 
   try {
+    const getImageDialysisDetailQuery = `SELECT photo FROM dialysisDetail WHERE dialysisId = ?;`;
+    const getImageDialysisDetailParams = [dialysisId];
+    const [getImageDialysisDetailRows] = await connection.query(getImageDialysisDetailQuery, getImageDialysisDetailParams);
+
     const updateDialysisDetailQuery = `
       UPDATE dialysisDetail SET memo = ? ${imageUrl ? ', photo = ? ' : ''}
       WHERE dialysisId = ?;
@@ -125,7 +127,7 @@ exports.updateHemodialysisMemo = async function ({ imageUrl, memo, dialysisId })
 
     connection.release();
 
-    return [true, '혈액투석 메모 수정에 성공했습니다.'];
+    return [true, '혈액투석 메모 수정에 성공했습니다.', getImageDialysisDetailRows ? getImageDialysisDetailRows[0].photo : null];
   } catch (err) {
     console.log('err', err);
     connection.release();
@@ -133,5 +135,34 @@ exports.updateHemodialysisMemo = async function ({ imageUrl, memo, dialysisId })
     logger.error(`App - updateHemodialysisMemo Query error\n: ${err.message}`);
 
     return [false, err.message];
+  }
+}
+
+exports.deleteHemodialysisMemo = async function (dialysisId) {
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  if (!dialysisId) throw new Error('누락된 정보가 있습니다.');
+
+  try {
+    const deleteDialysisHeaderQuery = `DELETE FROM dialysisHeader WHERE dialysisId = ?;`;
+    const deleteDialysisHeaderParams = [dialysisId];
+    await connection.query(deleteDialysisHeaderQuery, deleteDialysisHeaderParams);
+
+    const getImageDialysisDetailQuery = `SELECT photo FROM dialysisDetail WHERE dialysisId = ?;`;
+    const getImageDialysisDetailParams = [dialysisId];
+    const [getImageDialysisDetailRows] = await connection.query(getImageDialysisDetailQuery, getImageDialysisDetailParams);
+
+    const deleteDialysisDetailQuery = `DELETE FROM dialysisDetail WHERE dialysisId = ?;`;
+    const deleteDialysisDetailParams = [dialysisId];
+    await connection.query(deleteDialysisDetailQuery, deleteDialysisDetailParams);
+
+    connection.release();
+    return [true, '혈액투석 메모 삭제에 성공했습니다.', getImageDialysisDetailRows ? getImageDialysisDetailRows[0].photo : null];
+  } catch (err) {
+    console.log('err', err);
+    connection.release();
+
+    logger.error(`App - deleteHemodialysisMemo Query error\n: ${err.message}`);
+    return [true, '혈액투석 메모 삭제에 실패했습니다.'];
   }
 }

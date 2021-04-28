@@ -1,4 +1,5 @@
 const dialysisDao = require('../dao/dialysisDao');
+const { s3 } = require('../../../config/s3');
 
 exports.saveHemodialysisMemo = async function (req, res) {
   const { file, body: { date, memo }, verifiedToken: { id }, } = req;
@@ -94,13 +95,28 @@ exports.changeHemodialysisMemo = async function (req, res) {
 
   try {
 
-    const [isSuccess, message] = await dialysisDao.updateHemodialysisMemo({
+    const [isSuccess, message, imageUrl] = await dialysisDao.updateHemodialysisMemo({
       imageUrl: (file && file.location) ? file.location : null,
       memo: name,
       dialysisId
     });
 
     if (isSuccess) {
+
+      if (imageUrl) {
+        var params = {
+          Bucket: "chlngersimage",
+          Key: imageUrl.split('/').pop(),
+        };
+        s3.deleteObject(params, function (err, data) {
+          if (err) { // an error occurred
+            console.log(err, err.stack);
+            throw new Error(err);
+          }
+          console.log('aws s3 image delete success : ' + JSON.stringify(data)); // successful response
+        });
+      }
+
       res.json({
         isSuccess: true,
         code: 200,
@@ -120,5 +136,56 @@ exports.changeHemodialysisMemo = async function (req, res) {
       message: '서버 오류로 인해 투석일지 수정에 실패했습니다.',
     });
     console.log('changeHemodialysisMemo Error', err)
+  }
+}
+
+exports.removeHemodialysisMemo = async function (req, res) {
+  const { params: { dialysisId }, verifiedToken: { id }, } = req;
+
+  if (!dialysisId) {
+    return res.json({
+      isSuccess: false,
+      code: 400,
+      message: "메모 정보 ID (dialysisId)가 누락되었습니다.",
+    });
+  }
+
+  try {
+    const [isSuccess, message, imageUrl] = await dialysisDao.deleteHemodialysisMemo(dialysisId);
+
+    if (imageUrl) {
+      var params = {
+        Bucket: "chlngersimage",
+        Key: imageUrl.split('/').pop(),
+      };
+      s3.deleteObject(params, function (err, data) {
+        if (err) { // an error occurred
+          console.log(err, err.stack);
+          throw new Error(err);
+        }
+        console.log('aws s3 image delete success : ' + JSON.stringify(data));           // successful response
+      });
+    }
+
+    if (isSuccess) {
+      res.json({
+        isSuccess: true,
+        code: 200,
+        message,
+      });
+    } else {
+      res.json({
+        isSuccess: false,
+        code: 400,
+        message,
+      });
+    }
+  } catch (err) {
+    res.json({
+      code: 500,
+      isSuccess: false,
+      message: '서버 오류로 인해 투석일지 삭제에 실패했습니다.',
+    });
+    console.log('deleteHemodialysisMemo Error', err)
   }
 }
