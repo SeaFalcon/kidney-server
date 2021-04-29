@@ -70,7 +70,7 @@ exports.getFoodRecord = async function (userId) {
 }
 
 //날짜 별 foodRecord 조회
-exports.getFoodRecordWithDate = async function(id, date){
+exports.getFoodRecordWithDate = async function (id, date) {
   const connection = await pool.getConnection(async (conn) => conn);
   console.log("3");
   console.log(id + " : " + date);
@@ -88,14 +88,14 @@ exports.getFoodRecordWithDate = async function(id, date){
 
     const getFoodRecordWithDateParams = [id, date];
     const [foodRecordWithDateRows] = await connection.query(
-        getFoodRecordWithDateQuery,
-        getFoodRecordWithDateParams
+      getFoodRecordWithDateQuery,
+      getFoodRecordWithDateParams
     );
 
     connection.release()
     return foodRecordWithDateRows;
   }
-  catch (err){
+  catch (err) {
     console.log("err");
     console.log(err);
 
@@ -106,7 +106,7 @@ exports.getFoodRecordWithDate = async function(id, date){
 }
 
 // 날짜 별 영양소 조회
-exports.getNutrition = async function(id){
+exports.getNutrition = async function (id) {
   const connection = await pool.getConnection(async (conn) => conn);
 
 
@@ -122,8 +122,8 @@ exports.getNutrition = async function(id){
   `;
   const getNutritionParams = [id];
   const [NutritionRows] = await connection.query(
-      getNutritionQuery,
-      getNutritionParams
+    getNutritionQuery,
+    getNutritionParams
   );
   connection.release();
 
@@ -299,4 +299,20 @@ exports.removeFoodIntakeRecordSub = async function (foodIntakeRecordTypeId, food
 
     return false;
   }
+}
+
+exports.selectFoodCategory = async function () {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const selectFoodCategoryQuery = `
+    SELECT category
+    FROM food
+    WHERE foodType = 2
+    GROUP BY category;
+  `;
+
+  const [foodCategoryRows] = await connection.query(selectFoodCategoryQuery);
+
+  connection.release();
+
+  return foodCategoryRows;
 }

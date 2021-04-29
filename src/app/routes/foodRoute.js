@@ -15,4 +15,6 @@ module.exports = function (app) {
   app.delete('/food-record', jwtMiddleware, food.removeFoodRecord);
 
   app.delete('/food-record/:foodIntakeRecordId', jwtMiddleware, food.removeFoodRecordsByMealTime);
+
+  app.get('/food-category', jwtMiddleware, food.getFoodCategory);
 };

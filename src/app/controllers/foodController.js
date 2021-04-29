@@ -315,3 +315,27 @@ exports.removeFoodRecordsByMealTime = async function (req, res) {
     return res.status(500).send(`Error: ${err.message}`);
   }
 }
+
+exports.getFoodCategory = async function (req, res) {
+  try {
+    const foodCategoryRows = await foodDao.selectFoodCategory();
+
+    if (foodCategoryRows.length) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "음식 카테고리 정보 가져오기 성공",
+        foodCategories: foodCategoryRows.map(row => row.category),
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "음식 카테고리 정보 가져오기 실패 (음식 검색결과가 없습니다)",
+      });
+    }
+  } catch (err) {
+    logger.error(`App - getFoodCategory Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+}
