@@ -333,20 +333,6 @@ exports.changePeritonrumMemo = async function (req, res) {
                 message,
             });
         }
-
-        if (isSuccess) {
-            res.json({
-                isSuccess: true,
-                code: 200,
-                message,
-            });
-        } else {
-            res.json({
-                isSuccess: false,
-                code: 400,
-                message,
-            });
-        }
     } catch (err) {
         res.json({
             code: 500,

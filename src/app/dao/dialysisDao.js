@@ -1,5 +1,5 @@
-const {logger} = require("../../../config/winston");
-const {pool} = require("../../../config/database");
+const { logger } = require("../../../config/winston");
+const { pool } = require("../../../config/database");
 
 const dialysisTypes = {
     'MACHINE_DIALYSIS': 1, // 기계 복막투석
@@ -7,7 +7,7 @@ const dialysisTypes = {
     'HEMODIALYSIS': 3      // 혈액투석
 }
 
-exports.insertHemodialysisMemo = async function ({imageUrl, recordDate, memo, userId}) {
+exports.insertHemodialysisMemo = async function ({ imageUrl, recordDate, memo, userId }) {
 
     const connection = await pool.getConnection(async (conn) => conn);
 
@@ -29,7 +29,7 @@ exports.insertHemodialysisMemo = async function ({imageUrl, recordDate, memo, us
             isExistdialysisHeaderParams
         );
 
-    if (isExistdialysisHeaderRows.length) throw new Error('이미 투석일지 / 메모가 작성된 날입니다.');
+        if (isExistdialysisHeaderRows.length) throw new Error('이미 투석일지 / 메모가 작성된 날입니다.');
 
         const insertDialysisHeaderQuery = `
         INSERT INTO DialysisHeader (userId, recordDate, dialysisTypeId) 
@@ -90,14 +90,14 @@ exports.getHemodialysisMemo = async function (userId, year, month) {
 
     if (getHemodialysisHeaderMemoRows.length) {
         for (dialysisMemo of getHemodialysisHeaderMemoRows) {
-            const {dialysisId, recordDate, dialysisTypeId} = dialysisMemo;
+            const { dialysisId, recordDate, dialysisTypeId } = dialysisMemo;
 
             const getHemodialysisDetailMemoParams = [dialysisId];
             const [getHemodialysisDetailMemoRows] = await connection.query(getHemodialysisDetailMemoQuery, getHemodialysisDetailMemoParams);
 
             if (getHemodialysisDetailMemoRows.length) {
-                const {degrees, exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, photo} = getHemodialysisDetailMemoRows[0];
-                hemodialysisMemos.push({dialysisId, recordDate, dialysisTypeId, degrees, exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, photo});
+                const { degrees, exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, photo } = getHemodialysisDetailMemoRows[0];
+                hemodialysisMemos.push({ dialysisId, recordDate, dialysisTypeId, degrees, exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, photo });
             }
         }
     }
@@ -107,18 +107,18 @@ exports.getHemodialysisMemo = async function (userId, year, month) {
     return hemodialysisMemos;
 }
 
-exports.updateHemodialysisMemo = async function ({imageUrl, memo, dialysisId}) {
+exports.updateHemodialysisMemo = async function ({ imageUrl, memo, dialysisId }) {
     const connection = await pool.getConnection(async (conn) => conn);
 
     if (!(dialysisId || memo)) throw new Error('누락된 정보가 있습니다.');
 
 
-  try {
-    const getImageDialysisDetailQuery = `SELECT photo FROM DialysisDetail WHERE dialysisId = ?;`;
-    const getImageDialysisDetailParams = [dialysisId];
-    const [getImageDialysisDetailRows] = await connection.query(getImageDialysisDetailQuery, getImageDialysisDetailParams);
+    try {
+        const getImageDialysisDetailQuery = `SELECT photo FROM DialysisDetail WHERE dialysisId = ?;`;
+        const getImageDialysisDetailParams = [dialysisId];
+        const [getImageDialysisDetailRows] = await connection.query(getImageDialysisDetailQuery, getImageDialysisDetailParams);
 
-    const updateDialysisDetailQuery = `
+        const updateDialysisDetailQuery = `
       UPDATE DialysisDetail SET memo = ? ${imageUrl ? ', photo = ? ' : ''}
       WHERE dialysisId = ?;
     `;
@@ -128,7 +128,7 @@ exports.updateHemodialysisMemo = async function ({imageUrl, memo, dialysisId}) {
 
         connection.release();
 
-      return [true, '혈액투석 메모 수정에 성공했습니다.', getImageDialysisDetailRows ? getImageDialysisDetailRows[0].photo : null];
+        return [true, '혈액투석 메모 수정에 성공했습니다.', getImageDialysisDetailRows ? getImageDialysisDetailRows[0].photo : null];
     } catch (err) {
         console.log('err', err);
         connection.release();
@@ -169,14 +169,14 @@ exports.deleteHemodialysisMemo = async function (dialysisId) {
     }
 }
 
-exports.insertGeneraldialysisMemo = async function ({imageUrl, recordDate, dialysisType, dialysis, userId}) {
+exports.insertGeneraldialysisMemo = async function ({ imageUrl, recordDate, dialysisType, dialysis, userId }) {
     const connection = await pool.getConnection(async (conn) => conn);
 
     try {
         await connection.beginTransaction(); // START TRANSACTION
 
         // 오늘 추가된 HemodialysisMemo 가 있는지 확인
-       const isExistdialysisHeaderQuery = `
+        const isExistdialysisHeaderQuery = `
             SELECT dialysisId
             FROM DialysisHeader
             WHERE date(recordDate) = date(concat('', ?))
@@ -198,7 +198,7 @@ exports.insertGeneraldialysisMemo = async function ({imageUrl, recordDate, dialy
       `;
 
 
-        const insertDialysisHeaderParams = [userId, recordDate, (dialysisType === 1)? dialysisTypes.MACHINE_DIALYSIS : dialysisTypes.GENETAL_DIALYSIS];
+        const insertDialysisHeaderParams = [userId, recordDate, (dialysisType === 1) ? dialysisTypes.MACHINE_DIALYSIS : dialysisTypes.GENETAL_DIALYSIS];
         const [insertDialysisHeaderResult] = await connection.query(
             insertDialysisHeaderQuery,
             insertDialysisHeaderParams
@@ -211,7 +211,7 @@ exports.insertGeneraldialysisMemo = async function ({imageUrl, recordDate, dialy
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `;
 
-        const insertDialysisDetailParams = [dialysisId, dialysis.degrees, dialysis.exchangeTime, dialysis.injectionConcentration, dialysis.injectionAmount, dialysis.drainage, dialysis.dehydration, dialysis.weight, dialysis.bloodPressure, dialysis.bloodSugar, dialysis.edema, dialysis.memo, imageUrl]
+        const insertDialysisDetailParams = [dialysisId, dialysis.degrees, dialysis.exchangeTime.replace('T', ' ').replace('.000Z', ''), dialysis.injectionConcentration, dialysis.injectionAmount, dialysis.drainage, dialysis.dehydration, dialysis.weight, dialysis.bloodPressure, dialysis.bloodSugar, dialysis.edema, dialysis.memo, imageUrl]
         console.log(insertDialysisDetailParams);
         await connection.query(insertDialysisDetailQuery, insertDialysisDetailParams);
 
@@ -253,14 +253,14 @@ exports.getPeritonrumMemo = async function (userId, year, month) {
 
     if (getPeritonrumHeaderMemoRows.length) {
         for (dialysisMemo of getPeritonrumHeaderMemoRows) {
-            const {dialysisId, recordDate, dialysisTypeId} = dialysisMemo;
+            const { dialysisId, recordDate, dialysisTypeId } = dialysisMemo;
 
             const getPeritonrumDetailMemoParams = [dialysisId];
             const [getPeritonrumDetailMemoRows] = await connection.query(getPeritonrumDetailMemoQuery, getPeritonrumDetailMemoParams);
 
             if (getPeritonrumDetailMemoRows.length) {
-                const {degrees, exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, photo} = getPeritonrumDetailMemoRows[0];
-                hemodialysisMemos.push({dialysisId, recordDate,dialysisTypeId,degrees, exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, photo});
+                const { degrees, exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, photo } = getPeritonrumDetailMemoRows[0];
+                hemodialysisMemos.push({ dialysisId, recordDate, dialysisTypeId, degrees, exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, photo });
             }
         }
     }
@@ -271,7 +271,7 @@ exports.getPeritonrumMemo = async function (userId, year, month) {
 }
 
 
-exports.updateGenaraldialysisMemo = async function ({imageUrl, dialysis, dialysisId}) {
+exports.updateGenaraldialysisMemo = async function ({ imageUrl, dialysis, dialysisId }) {
     const connection = await pool.getConnection(async (conn) => conn);
 
     if (!dialysisId) throw new Error('누락된 정보가 있습니다.');
@@ -287,8 +287,9 @@ exports.updateGenaraldialysisMemo = async function ({imageUrl, dialysis, dialysi
             WHERE dialysisId = ?;
         `;
 
-        const updateDialysisDetailParams = imageUrl ? [dialysis.degrees, dialysis.exchangeTime, dialysis.injectionConcentration, dialysis.injectionAmount, dialysis.drainage, dialysis.dehydration, dialysis.weight, dialysis.bloodPressure, dialysis.bloodSugar, dialysis.edema, dialysis.memo, imageUrl, dialysisId]
-            : [dialysis.degrees, dialysis.exchangeTime, dialysis.injectionConcentration, dialysis.injectionAmount, dialysis.drainage, dialysis.dehydration, dialysis.weight, dialysis.bloodPressure, dialysis.bloodSugar, dialysis.edema, dialysis.memo, dialysisId];
+        const updateDialysisDetailParams = imageUrl 
+            ? [dialysis.degrees, dialysis.exchangeTime.replace('T', ' ').replace('.000Z', ''), dialysis.injectionConcentration, dialysis.injectionAmount, dialysis.drainage, dialysis.dehydration, dialysis.weight, dialysis.bloodPressure, dialysis.bloodSugar, dialysis.edema, dialysis.memo, imageUrl, dialysisId]
+            : [dialysis.degrees, dialysis.exchangeTime.replace('T', ' ').replace('.000Z', ''), dialysis.injectionConcentration, dialysis.injectionAmount, dialysis.drainage, dialysis.dehydration, dialysis.weight, dialysis.bloodPressure, dialysis.bloodSugar, dialysis.edema, dialysis.memo, dialysisId];
         await connection.query(updateDialysisDetailQuery, updateDialysisDetailParams);
 
         connection.release();
