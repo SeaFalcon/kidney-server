@@ -1,17 +1,63 @@
 const { logger } = require("../../../config/winston");
 const { pool } = require("../../../config/database");
 
-exports.findByFoodName = async function (foodName, userId) {
+exports.selectFoodByName = async function (foodName, userId) {
   const connection = await pool.getConnection(async (conn) => conn);
-  const findByFoodNameQuery = `
+  const findFoodsQuery = `
     SELECT *
     FROM food
     WHERE foodName like concat('%', ?, '%') ;
   `;
-  const findByFoodNameParams = [foodName];
+  const findFoodsParams = [foodName];
   const [foodIngredientRows] = await connection.query(
-    findByFoodNameQuery,
-    findByFoodNameParams
+    findFoodsQuery,
+    findFoodsParams
+  );
+
+
+  // 해당 유저가 이미 섭취한 음식이 있는지 검색하여 구분
+  const findDuplicatedFoodQuery = `
+    SELECT foodId, fir.foodIntakeRecordTypeId
+    FROM foodIntakeRecord fir
+            JOIN foodIntakeRecordSub firs ON fir.foodIntakeRecordId = firs.foodIntakeRecordId AND
+                                              fir.foodIntakeRecordTypeId = firs.foodIntakeRecordTypeId
+            JOIN user u ON fir.userId = u.userId
+    WHERE u.userId = ?
+      and foodId = ?
+      and date(fir.createdAt) = date(now());
+  `;
+
+  for (const foodIngredient of foodIngredientRows) {
+    const [findDuplicatedFoodRows] = await connection.query(
+      findDuplicatedFoodQuery,
+      [userId, foodIngredient.foodId]
+    );
+
+    if (findDuplicatedFoodRows.length) {
+      foodIngredient['isAlreadyEat'] = true;
+      foodIngredient['mealTime'] = findDuplicatedFoodRows[0].foodIntakeRecordTypeId;
+    }
+  }
+
+  connection.release();
+
+  return foodIngredientRows;
+}
+
+exports.selectFoodByCategory = async function (category, userId) {
+  const connection = await pool.getConnection(async (conn) => conn);
+  const findFoodsQuery = `
+    SELECT *
+    FROM food
+    WHERE category = concat('', ?);
+  `;
+
+  console.log(category)
+
+  const findFoodsParams = [category];
+  const [foodIngredientRows] = await connection.query(
+    findFoodsQuery,
+    findFoodsParams
   );
 
 

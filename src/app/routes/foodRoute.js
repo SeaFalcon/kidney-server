@@ -2,7 +2,7 @@ module.exports = function (app) {
   const food = require('../controllers/foodController');
   const jwtMiddleware = require('../../../config/jwtMiddleware');
 
-  app.get('/foods', jwtMiddleware, food.findByFoodName);
+  app.get('/foods', jwtMiddleware, food.findFoods);
 
   app.get('/food-record', jwtMiddleware, food.getFoodRecord);
 
@@ -17,4 +17,6 @@ module.exports = function (app) {
   app.delete('/food-record/:foodIntakeRecordId', jwtMiddleware, food.removeFoodRecordsByMealTime);
 
   app.get('/food-category', jwtMiddleware, food.getFoodCategory);
+
+  app.get('/foods/category', jwtMiddleware, food.findFoodsByCategory);
 };

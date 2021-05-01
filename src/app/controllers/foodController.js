@@ -2,13 +2,11 @@ const { json } = require("express");
 const { logger } = require("../../../config/winston");
 const foodDao = require("../dao/foodDao");
 
-exports.findByFoodName = async function (req, res) {
+exports.findFoods = async function (req, res) {
   const {
     query: { foodName },
     verifiedToken: { id },
   } = req;
-
-  console.log(foodName);
 
   if (!foodName) return res.json({
     isSuccess: false,
@@ -17,7 +15,7 @@ exports.findByFoodName = async function (req, res) {
   });
 
   try {
-    const foodIngredientRows = await foodDao.findByFoodName(foodName, id);
+    const foodIngredientRows = await foodDao.selectFoodByName(foodName, id);
 
     if (foodIngredientRows.length) {
       return res.json({
@@ -35,7 +33,7 @@ exports.findByFoodName = async function (req, res) {
       });
     }
   } catch (err) {
-    logger.error(`App - findByFoodName Query error\n: ${err.message}`);
+    logger.error(`App - findFood Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
 };
@@ -336,6 +334,42 @@ exports.getFoodCategory = async function (req, res) {
     }
   } catch (err) {
     logger.error(`App - getFoodCategory Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+}
+
+exports.findFoodsByCategory = async function (req, res) {
+  const {
+    query: { category },
+    verifiedToken: { id },
+  } = req;
+
+  if (!category) return res.json({
+    isSuccess: false,
+    code: 400,
+    message: "검색할 음식 카테고리 이름을 적어주세요",
+  });
+
+  try {
+    const foodIngredientRows = await foodDao.selectFoodByCategory(category, id);
+
+    if (foodIngredientRows.length) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "카테고리 별 음식 정보 가져오기 성공",
+        foods: foodIngredientRows,
+        searchCategory: category
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "카테고리 별 음식 정보 가져오기 실패 (음식 검색결과가 없습니다)",
+      });
+    }
+  } catch (err) {
+    logger.error(`App - findFoodsByCategory Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
 }
