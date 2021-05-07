@@ -8,11 +8,12 @@ exports.findFoods = async function (req, res) {
     verifiedToken: { id },
   } = req;
 
-  if (!foodName) return res.json({
-    isSuccess: false,
-    code: 400,
-    message: "검색할 음식 이름을 적어주세요",
-  });
+  if (!foodName)
+    return res.json({
+      isSuccess: false,
+      code: 400,
+      message: "검색할 음식 이름을 적어주세요",
+    });
 
   try {
     const foodIngredientRows = await foodDao.selectFoodByName(foodName, id);
@@ -23,7 +24,7 @@ exports.findFoods = async function (req, res) {
         code: 200,
         message: "음식 정보 가져오기 성공",
         foods: foodIngredientRows,
-        searchQuery: foodName
+        searchQuery: foodName,
       });
     } else {
       return res.json({
@@ -39,11 +40,11 @@ exports.findFoods = async function (req, res) {
 };
 
 const convertMealTime = {
-  1: 'breakfast',
-  2: 'lunch',
-  3: 'dinner',
-  4: 'snack',
-}
+  1: "breakfast",
+  2: "lunch",
+  3: "dinner",
+  4: "snack",
+};
 
 exports.getFoodRecord = async function (req, res) {
   const {
@@ -72,7 +73,7 @@ exports.getFoodRecord = async function (req, res) {
         isSuccess: true,
         code: 200,
         message: "식사 정보 가져오기 성공",
-        diet
+        diet,
       });
     } else {
       return res.json({
@@ -96,14 +97,13 @@ exports.getFoodRecordWithDate = async function (req, res) {
     verifiedToken: { id },
   } = req;
 
-  console.log(date)
+  console.log(date);
 
   try {
     console.log("1");
     const foodRecordRows = await foodDao.getFoodRecordWithDate(id, date);
     console.log("4");
     console.log(foodRecordRows);
-
 
     let diet = {
       breakfast: [],
@@ -121,7 +121,7 @@ exports.getFoodRecordWithDate = async function (req, res) {
         isSuccess: true,
         code: 200,
         message: "식사 정보 가져오기 성공",
-        diet
+        diet,
       });
     } else {
       return res.json({
@@ -144,9 +144,8 @@ exports.getNutrition = async function (req, res) {
   } = req;
 
   try {
-    console.log("들어왔어요~~");
     const nutritionRows = await foodDao.getNutrition(id);
-    console.log("nutritionRow : ")
+    console.log("nutritionRow : ");
     console.log(nutritionRows.length);
     let calorie = 0;
     let protein = 0;
@@ -160,38 +159,37 @@ exports.getNutrition = async function (req, res) {
       protein += nutritionRows[i].protein;
       phosphorus += nutritionRows[i].phosphorus;
       potassium += nutritionRows[i].potassium;
-      sodium += nutritionRows[i].sodium
+      sodium += nutritionRows[i].sodium;
       console.log(nutritionRows[i]);
       i++;
     }
 
-    console.log("칼로리 : ")
+    console.log("칼로리 : ");
     console.log(calorie);
 
     let nutrition = {
-      caloire: calorie,
+      calorie: calorie,
       protein: protein,
       phosphorus: phosphorus,
       potassium: potassium,
       sodium: sodium,
     };
-    console.log("")
+    console.log("");
     console.log(nutrition);
-
 
     if (nutritionRows.length) {
       return res.json({
         isSuccess: true,
         code: 200,
         message: "영양소 정보 가져오기 성공",
-        nutrition
+        nutrition,
       });
     } else {
       return res.json({
         isSuccess: false,
         code: 400,
         message: "영양소 정보가 없습니다.",
-        nutrition
+        nutrition,
       });
     }
   } catch (err) {
@@ -199,8 +197,7 @@ exports.getNutrition = async function (req, res) {
     logger.error(`App - getNutrition Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
-
-}
+};
 
 exports.saveFoodRecord = async function (req, res) {
   const {
@@ -211,17 +208,21 @@ exports.saveFoodRecord = async function (req, res) {
   console.log(foodIntakeRecordType, basketFoods);
   console.log(id);
 
-  if (!foodIntakeRecordType || !basketFoods.length) return res.json({
-    isSuccess: false,
-    code: 400,
-    message: "식사 시기 또는 음식 정보가 누락되었습니다.",
-  });
+  if (!foodIntakeRecordType || !basketFoods.length)
+    return res.json({
+      isSuccess: false,
+      code: 400,
+      message: "식사 시기 또는 음식 정보가 누락되었습니다.",
+    });
 
   try {
+    const result = await foodDao.insertFoodIntakeRecord(
+      foodIntakeRecordType,
+      basketFoods,
+      id
+    );
 
-    const result = await foodDao.insertFoodIntakeRecord(foodIntakeRecordType, basketFoods, id);
-
-    console.log('insertResult', result);
+    console.log("insertResult", result);
 
     if (result) {
       return res.json({
@@ -236,12 +237,11 @@ exports.saveFoodRecord = async function (req, res) {
         message: "식사정보 입력 실패",
       });
     }
-
   } catch (err) {
     logger.error(`App - saveFoodRecord Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
-}
+};
 
 exports.removeFoodRecord = async function (req, res) {
   const {
@@ -249,14 +249,20 @@ exports.removeFoodRecord = async function (req, res) {
     verifiedToken: { id },
   } = req;
 
-  if (!foodIntakeRecordTypeId || !foodId || !date) return res.json({
-    isSuccess: false,
-    code: 400,
-    message: "식사 시기 또는 음식 정보가 누락되었습니다.",
-  });
+  if (!foodIntakeRecordTypeId || !foodId || !date)
+    return res.json({
+      isSuccess: false,
+      code: 400,
+      message: "식사 시기 또는 음식 정보가 누락되었습니다.",
+    });
 
   try {
-    const result = await foodDao.removeFoodIntakeRecordSub(foodIntakeRecordTypeId, foodId, id, date);
+    const result = await foodDao.removeFoodIntakeRecordSub(
+      foodIntakeRecordTypeId,
+      foodId,
+      id,
+      date
+    );
 
     if (result) {
       return res.json({
@@ -271,12 +277,11 @@ exports.removeFoodRecord = async function (req, res) {
         message: "음식 삭제 실패",
       });
     }
-
   } catch (err) {
     logger.error(`App - removeFoodRecord Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
-}
+};
 
 exports.removeFoodRecordsByMealTime = async function (req, res) {
   const {
@@ -284,14 +289,17 @@ exports.removeFoodRecordsByMealTime = async function (req, res) {
     // verifiedToken: { id },
   } = req;
 
-  if (!foodIntakeRecordId) return res.json({
-    isSuccess: false,
-    code: 400,
-    message: "식단 아이디가 누락되었습니다.",
-  });
+  if (!foodIntakeRecordId)
+    return res.json({
+      isSuccess: false,
+      code: 400,
+      message: "식단 아이디가 누락되었습니다.",
+    });
 
   try {
-    const result = await foodDao.removeFoodRecordsByMealTime(foodIntakeRecordId);
+    const result = await foodDao.removeFoodRecordsByMealTime(
+      foodIntakeRecordId
+    );
     console.log(result);
 
     if (result) {
@@ -307,12 +315,13 @@ exports.removeFoodRecordsByMealTime = async function (req, res) {
         message: "식단 삭제 실패",
       });
     }
-
   } catch (err) {
-    logger.error(`App - removeFoodRecordsByMealTime Query error\n: ${err.message}`);
+    logger.error(
+      `App - removeFoodRecordsByMealTime Query error\n: ${err.message}`
+    );
     return res.status(500).send(`Error: ${err.message}`);
   }
-}
+};
 
 exports.getFoodCategory = async function (req, res) {
   try {
@@ -323,7 +332,7 @@ exports.getFoodCategory = async function (req, res) {
         isSuccess: true,
         code: 200,
         message: "음식 카테고리 정보 가져오기 성공",
-        foodCategories: foodCategoryRows.map(row => row.category),
+        foodCategories: foodCategoryRows.map((row) => row.category),
       });
     } else {
       return res.json({
@@ -336,7 +345,7 @@ exports.getFoodCategory = async function (req, res) {
     logger.error(`App - getFoodCategory Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
-}
+};
 
 exports.findFoodsByCategory = async function (req, res) {
   const {
@@ -344,11 +353,12 @@ exports.findFoodsByCategory = async function (req, res) {
     verifiedToken: { id },
   } = req;
 
-  if (!category) return res.json({
-    isSuccess: false,
-    code: 400,
-    message: "검색할 음식 카테고리 이름을 적어주세요",
-  });
+  if (!category)
+    return res.json({
+      isSuccess: false,
+      code: 400,
+      message: "검색할 음식 카테고리 이름을 적어주세요",
+    });
 
   try {
     const foodIngredientRows = await foodDao.selectFoodByCategory(category, id);
@@ -359,17 +369,18 @@ exports.findFoodsByCategory = async function (req, res) {
         code: 200,
         message: "카테고리 별 음식 정보 가져오기 성공",
         foods: foodIngredientRows,
-        searchCategory: category
+        searchCategory: category,
       });
     } else {
       return res.json({
         isSuccess: false,
         code: 400,
-        message: "카테고리 별 음식 정보 가져오기 실패 (음식 검색결과가 없습니다)",
+        message:
+          "카테고리 별 음식 정보 가져오기 실패 (음식 검색결과가 없습니다)",
       });
     }
   } catch (err) {
     logger.error(`App - findFoodsByCategory Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
-}
+};
