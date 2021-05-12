@@ -168,11 +168,11 @@ exports.getNutrition = async function (req, res) {
     console.log(calorie);
 
     let nutrition = {
-      calorie: calorie,
-      protein: protein,
-      phosphorus: phosphorus,
-      potassium: potassium,
-      sodium: sodium,
+      calorie: calorie.toFixed(3),
+      protein: protein.toFixed(3),
+      phosphorus: phosphorus.toFixed(3),
+      potassium: potassium.toFixed(3),
+      sodium: sodium.toFixed(3),
     };
     console.log("");
     console.log(nutrition);
@@ -381,6 +381,71 @@ exports.findFoodsByCategory = async function (req, res) {
     }
   } catch (err) {
     logger.error(`App - findFoodsByCategory Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+};
+
+exports.saveFoodStore = async function (req, res) {
+  const {
+    body: { basketName, storedFood },
+    verifiedToken: { id },
+  } = req;
+
+  console.log(req.body);
+  console.log(basketName);
+
+  try {
+    const result = await foodDao.insertFoodStoredRecored(
+      basketName,
+      storedFood,
+      id
+    );
+
+    if (result) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "식사정보 입력 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "식사정보 입력 실패",
+      });
+    }
+  } catch (err) {
+    logger.error(`App - saveFoodRecord Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+};
+
+exports.getStoreFood = async function (req, res) {
+  const {
+    verifiedToken: { id },
+  } = req;
+
+  try {
+    const foodStoreRows = await foodDao.getFoodStored(id);
+
+    console.log("foodStoreRoew");
+    console.log(foodStoreRows);
+
+    if (foodStoreRows.length) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "식사 저장 정보 가져오기 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "식사 저장 정보 가져오기 성공(저장된 식사정보가 없습니다.)",
+      });
+    }
+  } catch (err) {
+    logger.error(`App- getStoredRecord Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
 };
