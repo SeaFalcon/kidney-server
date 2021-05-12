@@ -1,4 +1,7 @@
+const { CodePipeline } = require("aws-sdk");
 const { json } = require("express");
+const multer = require("multer");
+const { ConsoleTransportOptions } = require("winston/lib/winston/transports");
 const { logger } = require("../../../config/winston");
 const foodDao = require("../dao/foodDao");
 
@@ -115,6 +118,9 @@ exports.getFoodRecordWithDate = async function (req, res) {
     for (const foodRecord of foodRecordRows) {
       diet[convertMealTime[foodRecord.foodIntakeRecordTypeId]].push(foodRecord);
     }
+
+    console.log("dite");
+    console.log(diet);
 
     if (foodRecordRows.length) {
       return res.json({
@@ -428,14 +434,40 @@ exports.getStoreFood = async function (req, res) {
   try {
     const foodStoreRows = await foodDao.getFoodStored(id);
 
-    console.log("foodStoreRoew");
-    console.log(foodStoreRows);
+    //   console.log(foodStoreRows);
 
-    if (foodStoreRows.length) {
+    const Mystore = [];
+
+    for (const foodStore of foodStoreRows) {
+      if (!Mystore.includes(foodStore.foodRecordName)) {
+        Mystore.push(foodStore.foodRecordName);
+      }
+    }
+
+    console.log("length", Mystore.length);
+    console.log(Mystore);
+    let Mystored = {};
+
+    for (var i in Mystore) {
+      let keyname = Mystore[i];
+      console.log(keyname);
+      Mystored[keyname] = [];
+    }
+
+    for (const foodStore of foodStoreRows) {
+      Mystored[foodStore.foodRecordName].push(foodStore);
+    }
+
+    console.log("foodStoreRoew");
+    console.log(Mystore[1]);
+    console.log(Mystored);
+
+    if (Mystore.length) {
       return res.json({
         isSuccess: true,
         code: 200,
         message: "식사 저장 정보 가져오기 성공",
+        Mystore,
       });
     } else {
       return res.json({

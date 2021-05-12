@@ -14,7 +14,6 @@ exports.selectFoodByName = async function (foodName, userId) {
     findFoodsParams
   );
 
-
   // 해당 유저가 이미 섭취한 음식이 있는지 검색하여 구분
   const findDuplicatedFoodQuery = `
     SELECT foodId, fir.foodIntakeRecordTypeId
@@ -34,15 +33,16 @@ exports.selectFoodByName = async function (foodName, userId) {
     );
 
     if (findDuplicatedFoodRows.length) {
-      foodIngredient['isAlreadyEat'] = true;
-      foodIngredient['mealTime'] = findDuplicatedFoodRows[0].foodIntakeRecordTypeId;
+      foodIngredient["isAlreadyEat"] = true;
+      foodIngredient["mealTime"] =
+        findDuplicatedFoodRows[0].foodIntakeRecordTypeId;
     }
   }
 
   connection.release();
 
   return foodIngredientRows;
-}
+};
 
 exports.selectFoodByCategory = async function (category, userId) {
   const connection = await pool.getConnection(async (conn) => conn);
@@ -52,14 +52,13 @@ exports.selectFoodByCategory = async function (category, userId) {
     WHERE category = concat('', ?);
   `;
 
-  console.log(category)
+  console.log(category);
 
   const findFoodsParams = [category];
   const [foodIngredientRows] = await connection.query(
     findFoodsQuery,
     findFoodsParams
   );
-
 
   // 해당 유저가 이미 섭취한 음식이 있는지 검색하여 구분
   const findDuplicatedFoodQuery = `
@@ -80,15 +79,16 @@ exports.selectFoodByCategory = async function (category, userId) {
     );
 
     if (findDuplicatedFoodRows.length) {
-      foodIngredient['isAlreadyEat'] = true;
-      foodIngredient['mealTime'] = findDuplicatedFoodRows[0].foodIntakeRecordTypeId;
+      foodIngredient["isAlreadyEat"] = true;
+      foodIngredient["mealTime"] =
+        findDuplicatedFoodRows[0].foodIntakeRecordTypeId;
     }
   }
 
   connection.release();
 
   return foodIngredientRows;
-}
+};
 
 exports.getFoodRecord = async function (userId) {
   const connection = await pool.getConnection(async (conn) => conn);
@@ -113,7 +113,7 @@ exports.getFoodRecord = async function (userId) {
   console.log(foodRecordRows);
 
   return foodRecordRows;
-}
+};
 
 //날짜 별 foodRecord 조회
 exports.getFoodRecordWithDate = async function (id, date) {
@@ -138,23 +138,17 @@ exports.getFoodRecordWithDate = async function (id, date) {
       getFoodRecordWithDateParams
     );
 
-    connection.release()
+    connection.release();
     return foodRecordWithDateRows;
-  }
-  catch (err) {
+  } catch (err) {
     console.log("err");
     console.log(err);
-
   }
-
-
-
-}
+};
 
 // 날짜 별 영양소 조회
 exports.getNutrition = async function (id) {
   const connection = await pool.getConnection(async (conn) => conn);
-
 
   const getNutritionQuery = `
    SELECT f.calorie, f.protein, f.phosphorus, f.sodium, f.potassium
@@ -172,22 +166,28 @@ exports.getNutrition = async function (id) {
     getNutritionParams
   );
   connection.release();
-
-  console.log("영양소 계산 db 들어 왔어요~")
-  console.log(NutritionRows)
+  console.log(NutritionRows);
   return NutritionRows;
+};
 
-}
-
-exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, basketFoods, userId) {
+exports.insertFoodIntakeRecord = async function (
+  foodIntakeRecordTypeId,
+  basketFoods,
+  userId
+) {
   const connection = await pool.getConnection(async (conn) => conn);
 
-  console.log('foodIntakeRecordTypeId, basketFoods, userId', foodIntakeRecordTypeId, basketFoods, userId);
+  console.log(
+    "foodIntakeRecordTypeId, basketFoods, userId",
+    foodIntakeRecordTypeId,
+    basketFoods,
+    userId
+  );
 
-  if (!(foodIntakeRecordTypeId && basketFoods && userId)) throw new Error('누락된 정보가 있습니다.');
+  if (!(foodIntakeRecordTypeId && basketFoods && userId))
+    throw new Error("누락된 정보가 있습니다.");
 
   try {
-
     await connection.beginTransaction(); // START TRANSACTION
 
     // 오늘 추가된 FoodIntakeRecord header가 있는지 확인
@@ -205,10 +205,11 @@ exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, basketF
       isExistFoodIntakeRecordParams
     );
 
-    console.log('isExistFoodIntakeRecordRows', isExistFoodIntakeRecordRows);
+    console.log("isExistFoodIntakeRecordRows", isExistFoodIntakeRecordRows);
 
-    let foodIntakeRecordId = isExistFoodIntakeRecordRows[0] ? isExistFoodIntakeRecordRows[0].foodIntakeRecordId : undefined;
-
+    let foodIntakeRecordId = isExistFoodIntakeRecordRows[0]
+      ? isExistFoodIntakeRecordRows[0].foodIntakeRecordId
+      : undefined;
 
     // 오늘 추가된 FoodIntakeRecord header가 없으면 header를 추가해줌
     if (!isExistFoodIntakeRecordRows.length) {
@@ -246,22 +247,53 @@ exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, basketF
     `;
 
     for (const basketFood of basketFoods) {
-      const { foodId, foodAmount, calorie, protein, phosphorus, potassium, sodium } = basketFood;
+      const {
+        foodId,
+        foodAmount,
+        calorie,
+        protein,
+        phosphorus,
+        potassium,
+        sodium,
+      } = basketFood;
 
-      const isExistFoodParams = [foodIntakeRecordId, foodIntakeRecordTypeId, foodId];
+      const isExistFoodParams = [
+        foodIntakeRecordId,
+        foodIntakeRecordTypeId,
+        foodId,
+      ];
       const [isExistFoodResult] = await connection.query(
         isExistFoodQuery,
         isExistFoodParams
       );
 
-      console.log(isExistFoodResult, isExistFoodResult.length, foodIntakeRecordId, foodIntakeRecordTypeId, foodId);
+      console.log(
+        isExistFoodResult,
+        isExistFoodResult.length,
+        foodIntakeRecordId,
+        foodIntakeRecordTypeId,
+        foodId
+      );
 
       if (isExistFoodResult.length) {
-        throw new Error('이미 추가된 음식입니다.');
+        throw new Error("이미 추가된 음식입니다.");
       }
 
-      const insertFoodIntakeRecordSubParams = [foodIntakeRecordId, foodIntakeRecordTypeId, foodId, +foodAmount, calorie, protein, phosphorus, potassium, sodium];
-      await connection.query(insertFoodIntakeRecordSubQuery, insertFoodIntakeRecordSubParams);
+      const insertFoodIntakeRecordSubParams = [
+        foodIntakeRecordId,
+        foodIntakeRecordTypeId,
+        foodId,
+        +foodAmount,
+        calorie,
+        protein,
+        phosphorus,
+        potassium,
+        sodium,
+      ];
+      await connection.query(
+        insertFoodIntakeRecordSubQuery,
+        insertFoodIntakeRecordSubParams
+      );
     }
 
     await connection.commit(); // COMMIT
@@ -269,7 +301,7 @@ exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, basketF
 
     return true;
   } catch (err) {
-    console.log('err', err);
+    console.log("err", err);
     await connection.rollback(); // COMMIT
     connection.release();
 
@@ -277,7 +309,7 @@ exports.insertFoodIntakeRecord = async function (foodIntakeRecordTypeId, basketF
 
     return false;
   }
-}
+};
 
 exports.removeFoodRecordsByMealTime = async function (foodIntakeRecordId) {
   const connection = await pool.getConnection(async (conn) => conn);
@@ -296,8 +328,13 @@ exports.removeFoodRecordsByMealTime = async function (foodIntakeRecordId) {
   connection.release();
 
   return removeFoodRecordsByMealTimeResult;
-}
-exports.removeFoodIntakeRecordSub = async function (foodIntakeRecordTypeId, foodId, userId, date) {
+};
+exports.removeFoodIntakeRecordSub = async function (
+  foodIntakeRecordTypeId,
+  foodId,
+  userId,
+  date
+) {
   const connection = await pool.getConnection(async (conn) => conn);
 
   try {
@@ -320,32 +357,37 @@ exports.removeFoodIntakeRecordSub = async function (foodIntakeRecordTypeId, food
         WHERE foodIntakeRecordId = ? AND foodIntakeRecordTypeId = ? AND foodId = ?;
       `;
 
-      const removeFoodIntakeRecordSubParams = [foodIntakeRecordRow[0].foodIntakeRecordId, foodIntakeRecordTypeId, foodId];
+      const removeFoodIntakeRecordSubParams = [
+        foodIntakeRecordRow[0].foodIntakeRecordId,
+        foodIntakeRecordTypeId,
+        foodId,
+      ];
       const [removeFoodIntakeRecordSubResult] = await connection.query(
         removeFoodIntakeRecordSubQuery,
         removeFoodIntakeRecordSubParams
       );
 
-      if (removeFoodIntakeRecordSubResult.affectedRows < 1) throw new Error('삭제할 음식이 존재하지 않습니다.');
+      if (removeFoodIntakeRecordSubResult.affectedRows < 1)
+        throw new Error("삭제할 음식이 존재하지 않습니다.");
     }
-
 
     await connection.commit(); // COMMIT
     connection.release();
 
     return true;
-
   } catch (err) {
-    console.log('err', err);
+    console.log("err", err);
 
     await connection.rollback(); // COMMIT
     connection.release();
 
-    logger.error(`App - removeFoodIntakeRecordSub Query error\n: ${err.message}`);
+    logger.error(
+      `App - removeFoodIntakeRecordSub Query error\n: ${err.message}`
+    );
 
     return false;
   }
-}
+};
 
 exports.selectFoodCategory = async function () {
   const connection = await pool.getConnection(async (conn) => conn);
@@ -361,4 +403,100 @@ exports.selectFoodCategory = async function () {
   connection.release();
 
   return foodCategoryRows;
-}
+};
+
+exports.insertFoodStoredRecored = async function (
+  basketName,
+  storedFood,
+  userId
+) {
+  console.log(basketName);
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  try {
+    await connection.beginTransaction();
+
+    const insertStoreRecordQuery = `
+      INSERT INTO foodstoredrecord (userId, foodRecordName)
+      VALUE (?, ?);
+    `;
+
+    const insertFoodStoreParams = [userId, basketName];
+    const [insertFoodStoreRecordResult] = await connection.query(
+      insertStoreRecordQuery,
+      insertFoodStoreParams
+    );
+
+    foodStoredRecordId = insertFoodStoreRecordResult.insertId;
+
+    const insertFoodStoredRecordSubQuery = `
+    INSERT INTO foodstoredrecordsub (foodStoredRecordId, foodId, 
+                                     foodAmount, calorie, protein,
+                                     phosphorus, potassium, sodium)
+    VALUES (?, ?,
+            ?, ?, ?,
+            ?, ?, ?);
+  `;
+
+    for (const food of storedFood) {
+      const {
+        foodId,
+        foodAmount,
+        calorie,
+        protein,
+        phosphorus,
+        potassium,
+        sodium,
+      } = food;
+
+      const insertFoodStoredRecordSubParams = [
+        foodStoredRecordId,
+        foodId,
+        +foodAmount,
+        calorie,
+        protein,
+        phosphorus,
+        potassium,
+        sodium,
+      ];
+      await connection.query(
+        insertFoodStoredRecordSubQuery,
+        insertFoodStoredRecordSubParams
+      );
+    }
+    await connection.commit(); // COMMIT
+    connection.release();
+
+    return true;
+  } catch (err) {
+    console.log("err", err);
+    await connection.rollback(); // COMMIT
+    connection.release();
+
+    logger.error(`App - insertFoodIntakeRecord Query error\n: ${err.message}`);
+
+    return false;
+  }
+};
+
+exports.getFoodStored = async function (id) {
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  const getFoodStoredQuery = `
+  SELECT fsr.foodStoredRecordId, fsr.foodRecordName, f.*
+  FROM foodstoredrecord fsr
+          JOIN foodstoredrecordsub fsrs
+                ON fsr.foodStoredRecordId = fsrs.foodStoredRecordId
+          JOIN food f ON fsrs.foodId = f.foodId
+  WHERE fsr.userId = ?
+  `;
+
+  const getFoodStoredParams = [id];
+  const [StoredRows] = await connection.query(
+    getFoodStoredQuery,
+    getFoodStoredParams
+  );
+
+  connection.release;
+  return StoredRows;
+};
