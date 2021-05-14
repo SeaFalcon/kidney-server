@@ -467,7 +467,7 @@ exports.getStoreFood = async function (req, res) {
         isSuccess: true,
         code: 200,
         message: "식사 저장 정보 가져오기 성공",
-        Mystore,
+        Mystored,
       });
     } else {
       return res.json({
