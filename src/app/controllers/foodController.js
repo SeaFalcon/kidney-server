@@ -338,7 +338,7 @@ exports.getFoodCategory = async function (req, res) {
         isSuccess: true,
         code: 200,
         message: "음식 카테고리 정보 가져오기 성공",
-        foodCategories: foodCategoryRows.map((row) => row.category),
+        foodCategories: foodCategoryRows.map((row) => ({name: row.category, selected: false})),
       });
     } else {
       return res.json({
