@@ -22,6 +22,8 @@ module.exports = function (app) {
     food.removeFoodRecordsByMealTime
   );
 
+  app.delete("/food-store", jwtMiddleware, food.removeFoodStore);
+
   app.get("/food-category", jwtMiddleware, food.getFoodCategory);
 
   app.get("/foods/category", jwtMiddleware, food.findFoodsByCategory);

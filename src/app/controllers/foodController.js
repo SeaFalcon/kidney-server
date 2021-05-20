@@ -458,8 +458,6 @@ exports.getStoreFood = async function (req, res) {
       Mystored[foodStore.foodRecordName].push(foodStore);
     }
 
-    console.log("foodStoreRoew");
-    console.log(Mystore[1]);
     console.log(Mystored);
 
     if (Mystore.length) {
@@ -478,6 +476,41 @@ exports.getStoreFood = async function (req, res) {
     }
   } catch (err) {
     logger.error(`App- getStoredRecord Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+};
+
+exports.removeFoodStore = async function (req, res) {
+  const {
+    query: { storedFoodId },
+    verifiedToken: { id },
+  } = req;
+
+  if (!storedFoodId)
+    return res.json({
+      isSuccess: false,
+      code: 400,
+      message: "StoreFoodId 누락",
+    });
+
+  try {
+    const result = await foodDao.removeFoodStore(storedFoodId);
+
+    if (result) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "찜 음식 삭제 성공",
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "찜 음식 삭제 실패",
+      });
+    }
+  } catch (err) {
+    logger.error(`App - removeFoodRecord Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
 };

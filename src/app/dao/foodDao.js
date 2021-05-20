@@ -500,3 +500,50 @@ exports.getFoodStored = async function (id) {
   connection.release;
   return StoredRows;
 };
+
+exports.removeFoodStore = async function (storedFoodId) {
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  try {
+    await connection.beginTransaction();
+
+    const removeFoodStoreQuery = `
+    delete from foodstoredrecord
+    where foodStoredRecordId=?;
+    `;
+
+    const [removeFoodStoreResult] = await connection.query(
+      removeFoodStoreQuery,
+      storedFoodId
+    );
+    const removeFoodStoreSubQuery = `
+      delete from foodstoredrecordsub
+      where foodStoredRecordId = ?;
+    `;
+
+    const [removeFoodStoreSubResult] = await connection.query(
+      removeFoodStoreSubQuery,
+      storedFoodId
+    );
+
+    if (
+      removeFoodStoreResult.affectedRows < 1 ||
+      removeFoodStoreSubResult.affectedRows < 1
+    ) {
+      throw new Error("삭제할 음식이 존재하지 않습니다. ");
+    }
+
+    await connection.commit();
+    connection.release();
+
+    return true;
+  } catch (err) {
+    console.log("err", err);
+
+    await connection.rollback();
+    connection.release();
+
+    logger.error(`App - removeFoodStore Query error\n: ${err.message}`);
+    return false;
+  }
+};
