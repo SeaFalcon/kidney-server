@@ -1,16 +1,9 @@
 const dietDao = require("../dao/dietDao");
-let recommendDiets = require("../../apiRequest");
 
 exports.saveDiet = async function (req, res) {
   const {
-    body: { diet },
+    body: { recommendDiets },
   } = req;
-
-  console.log("diet Dao");
-
-  //recommendDiets = recommendDiets.diets;
-
-  recommendDiets = JSON.stringify(recommendDiets);
 
   try {
     const [isSuccess, message] = await dietDao.insertDiet({ recommendDiets });
@@ -45,7 +38,7 @@ const convertMealTime = {
   4: "snack",
 };
 
-exports.saveDiet = async function (req, res) {
+exports.getDites = async function (req, res) {
   const {
     query: { kidneyType, gender },
   } = req;

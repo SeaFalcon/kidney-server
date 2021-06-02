@@ -16,12 +16,9 @@ exports.insertDiet = async function ({ recommendDiets }) {
   try {
     await connection.beginTransaction(); // START TRANSACTION
 
-    console.log(recommendDiets[0]);
     for (recommendDiet of recommendDiets) {
       const { kidneyId, gender, name, diets } = recommendDiet;
 
-      console.log("diets: ");
-      console.log(kidneyId);
       for (diet of diets) {
         const { breakfast, lunch, dinner, snack } = diet;
 
