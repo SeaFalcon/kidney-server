@@ -174,13 +174,31 @@ exports.getDiets = async function (kidneyType, gender) {
     );
 
     const getDitesQuery = `
-    SELECT dt.foodAmount, dt.foodIntakeRecordTypeId, f.*
-    FROM dietdetail dt
-            JOIN food f ON dt.foodId = f.foodId
-    WHERE dt.dietId = ?;
+    SELECT dt.foodAmount AS customAmount, dt.foodIntakeRecordTypeId, f.foodId, f.foodName,
+    round((f.calorie/f.foodAmount)*dt.foodAmount, 3) AS calorie,
+    round((f.carbohydrate/f.foodAmount)*dt.foodAmount, 3) AS carbohydrate,
+    round((f.fat/f.foodAmount)*dt.foodAmount, 3) AS fat,
+    round((f.sodium/f.foodAmount)*dt.foodAmount, 3) AS sodium,
+    round((f.calcium/f.foodAmount)*dt.foodAmount, 3) AS calcium,
+    round((f.protein/f.foodAmount)*dt.foodAmount, 3) AS protein,
+    round((f.potassium/f.foodAmount)*dt.foodAmount, 3) AS potassium,
+    round((f.iron/f.foodAmount)*dt.foodAmount, 3) AS iron,
+    round((f.phosphorus/f.foodAmount)*dt.foodAmount, 3) AS phosphorus,
+    round((f.sugars/f.foodAmount)*dt.foodAmount, 3) AS sugars,
+    round((f.moisture/f.foodAmount)*dt.foodAmount, 3) AS moisture
+        FROM dietdetail dt
+                JOIN food f ON dt.foodId = f.foodId
+        WHERE dt.dietId = ?;
       `;
-    const getDietsParams = [isExistFoodIntakeRecordRows[0].dietId];
+
+    let num = Math.floor(
+      Math.random() * (isExistFoodIntakeRecordRows.length + 1)
+    );
+    console.log(num);
+    const getDietsParams = [isExistFoodIntakeRecordRows[num].dietId];
     const [DietsRow] = await connection.query(getDitesQuery, getDietsParams);
+
+    console.log(DietsRow[0]);
 
     await connection.commit(); // COMMIT
     connection.release;
