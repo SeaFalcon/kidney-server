@@ -56,7 +56,7 @@ exports.getDites = async function (req, res) {
     };
 
     for (const key of dietRows) {
-      diet[convertMealTime[key.foodIntakeRecordTypeId]].push(dietRows);
+      diet[convertMealTime[key.foodIntakeRecordTypeId]].push(key);
     }
 
     console.log(diet);
