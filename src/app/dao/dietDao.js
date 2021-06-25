@@ -174,31 +174,42 @@ exports.getDiets = async function (kidneyType, gender) {
     );
 
     const getDitesQuery = `
-    SELECT dt.foodAmount AS customAmount, dt.foodIntakeRecordTypeId, f.foodId, f.foodName,
-    round((f.calorie/f.foodAmount)*dt.foodAmount, 3) AS calorie,
-    round((f.carbohydrate/f.foodAmount)*dt.foodAmount, 3) AS carbohydrate,
-    round((f.fat/f.foodAmount)*dt.foodAmount, 3) AS fat,
-    round((f.sodium/f.foodAmount)*dt.foodAmount, 3) AS sodium,
-    round((f.calcium/f.foodAmount)*dt.foodAmount, 3) AS calcium,
-    round((f.protein/f.foodAmount)*dt.foodAmount, 3) AS protein,
-    round((f.potassium/f.foodAmount)*dt.foodAmount, 3) AS potassium,
-    round((f.iron/f.foodAmount)*dt.foodAmount, 3) AS iron,
-    round((f.phosphorus/f.foodAmount)*dt.foodAmount, 3) AS phosphorus,
-    round((f.sugars/f.foodAmount)*dt.foodAmount, 3) AS sugars,
-    round((f.moisture/f.foodAmount)*dt.foodAmount, 3) AS moisture
+    SELECT dt.foodAmount AS customAmount, dt.foodIntakeRecordTypeId, f.*
         FROM dietdetail dt
                 JOIN food f ON dt.foodId = f.foodId
         WHERE dt.dietId = ?;
       `;
 
-    let num = Math.floor(
-      Math.random() * (isExistFoodIntakeRecordRows.length + 1)
-    );
+    let num = Math.floor(Math.random() * isExistFoodIntakeRecordRows.length);
     console.log(num);
     const getDietsParams = [isExistFoodIntakeRecordRows[num].dietId];
     const [DietsRow] = await connection.query(getDitesQuery, getDietsParams);
 
-    console.log(DietsRow[0]);
+    // console.log("dietRow 1");
+    // console.log(DietsRow[1].foodId);
+
+    // let param = [];
+
+    // for (let i = 0; i < DietsRow.length; i++) {
+    //   param.push(DietsRow[i].foodId);
+    // }
+
+    // param = new Set(param);
+
+    // const RecipeRows2 = [];
+    // for (let i of param) {
+    //   const getRecipeQuery = `
+
+    //   SELECT *
+    //   FROM dremchan.foodrecipe
+    //   WHERE parentFoodId IN(?);
+    //     `;
+
+    //   const [RecipeRows] = await connection.query(getRecipeQuery, i);
+    //   RecipeRows2.push(RecipeRows);
+    // }
+
+    //console.log(RecipeRows2);
 
     await connection.commit(); // COMMIT
     connection.release;
@@ -211,4 +222,52 @@ exports.getDiets = async function (kidneyType, gender) {
 
     logger.error(`App - insertFoodIntakeRecord Query error\n: ${err.message}`);
   }
+};
+
+exports.getAllDiet = async function (kidneyType, gender) {
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  try {
+    await connection.beginTransaction(); // START TRANSACTION
+    const getDietsQuery = `
+    select dt.dietId, dt.foodId, dt.foodIntakeRecordTypeId, f.foodName
+    from dremchan.dietheader dh
+    Join dremchan.dietdetail dt ON dt.dietId = dh.dietId
+    Join food f on 
+    dt.foodId = f.foodId
+    where dh.kidneyId=? and dh.gender=?;
+    
+  `;
+
+    const getDietsParams = [kidneyType, gender];
+    const [AllDietsRow] = await connection.query(getDietsQuery, getDietsParams);
+
+    await connection.commit();
+    connection.release;
+
+    return AllDietsRow;
+  } catch (err) {
+    console.log("err", err);
+    await connection.rollback(); // COMMIT
+    connection.release();
+
+    logger.error(`App - insertFoodIntakeRecord Query error\n: ${err.message}`);
+  }
+};
+
+exports.getRecipe = async function (parentFoodId) {
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  const getRecipeQuery = `
+  SELECT * 
+  FROM foodrecipe
+  WHERE parentFoodId=?;
+  `;
+
+  const [RecipeRows] = await connection.query(getRecipeQuery, parentFoodId);
+
+  console.log("Recipe.dao 에서 레시피 가져왔당!");
+
+  connection.release;
+  return RecipeRows;
 };
