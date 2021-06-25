@@ -129,13 +129,13 @@ exports.getAllDiet = async function (req, res) {
       for (let key of Object.keys(my)) {
         if (dietRows[i].dietId === Number(key)) {
           if (dietRows[i].foodIntakeRecordTypeId === 1) {
-            my[key]["breakfast"].push(dietRows[i].foodName);
+            my[key]["breakfast"].push(dietRows[i].foodName + ",  ");
           } else if (dietRows[i].foodIntakeRecordTypeId === 2) {
-            my[key]["lunch"].push(dietRows[i].foodName);
+            my[key]["lunch"].push(dietRows[i].foodName + ",  ");
           } else if (dietRows[i].foodIntakeRecordTypeId === 3) {
-            my[key]["dinner"].push(dietRows[i].foodName);
+            my[key]["dinner"].push(dietRows[i].foodName + ",  ");
           } else if (dietRows[i].foodIntakeRecordTypeId === 4) {
-            my[key]["snack"].push(dietRows[i].foodName);
+            my[key]["snack"].push(dietRows[i].foodName + ",  ");
           }
         }
       }
@@ -180,6 +180,45 @@ exports.getRecipe = async function (req, res) {
         code: 200,
         message: "추천 식단 가져오기 성공",
         recipe: recipeRows,
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "추천 식단 가져오기 성공(저장된 식사정보가 없습니다.)",
+      });
+    }
+  } catch (err) {
+    logger.error(`App- getStoredRecord Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+};
+
+exports.getCertainDites = async function (req, res) {
+  const {
+    query: { key },
+  } = req;
+
+  try {
+    const dietRows = await dietDao.getCertainDiet(key);
+
+    let diet = {
+      breakfast: [],
+      lunch: [],
+      dinner: [],
+      snack: [],
+    };
+
+    for (const key of dietRows) {
+      diet[convertMealTime[key.foodIntakeRecordTypeId]].push(key);
+    }
+
+    if (dietRows.length) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "추천 식단 가져오기 성공",
+        diet,
       });
     } else {
       return res.json({
