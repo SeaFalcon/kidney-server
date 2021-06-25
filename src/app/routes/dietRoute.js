@@ -3,6 +3,7 @@ module.exports = function (app) {
   const jwtMiddleware = require("../../../config/jwtMiddleware");
 
   app.get("/diet", jwtMiddleware, diet.getDites);
+  app.get("/diet-certain", jwtMiddleware, diet.getCertainDites);
   app.get("/diet-all", jwtMiddleware, diet.getAllDiet);
   app.get("/diet-recipe", jwtMiddleware, diet.getRecipe);
   app.post("/diet", diet.saveDiet);
