@@ -271,3 +271,28 @@ exports.getRecipe = async function (parentFoodId) {
   connection.release;
   return RecipeRows;
 };
+
+exports.getCertainDiet = async function (key) {
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  try {
+    const getDitesQuery = `
+    SELECT dt.foodAmount AS customAmount, dt.foodIntakeRecordTypeId, f.*
+        FROM dietdetail dt
+                JOIN food f ON dt.foodId = f.foodId
+        WHERE dt.dietId = ?;
+      `;
+
+    const [DietsRow] = await connection.query(getDitesQuery, key);
+
+    connection.release;
+
+    return DietsRow;
+  } catch (err) {
+    console.log("err", err);
+    await connection.rollback(); // COMMIT
+    connection.release();
+
+    logger.error(`App - insertFoodIntakeRecord Query error\n: ${err.message}`);
+  }
+};
