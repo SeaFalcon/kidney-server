@@ -120,7 +120,7 @@ exports.getHemodialysisMemo = async function (userId, year, month) {
 
       if (getHemodialysisDetailMemoRows.length) {
         const {
-          degrees,
+          degree,
           exchangeTime,
           injectionConcentration,
           injectionAmount,
@@ -137,7 +137,7 @@ exports.getHemodialysisMemo = async function (userId, year, month) {
           dialysisId,
           recordDate,
           dialysisTypeId,
-          degrees,
+          degree,
           exchangeTime,
           injectionConcentration,
           injectionAmount,
@@ -298,13 +298,13 @@ exports.insertGeneraldialysisMemo = async function ({
     const dialysisId = insertDialysisHeaderResult.insertId;
 
     const insertDialysisDetailQuery = `
-            INSERT INTO DialysisDetail (dialysisId, degrees, exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, photo)
+            INSERT INTO DialysisDetail (dialysisId, degree, exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, photo)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `;
 
     const insertDialysisDetailParams = [
       dialysisId,
-      dialysis.degrees,
+      dialysis.degree,
       dialysis.exchangeTime.replace("T", " ").replace(".000Z", ""),
       dialysis.injectionConcentration,
       dialysis.injectionAmount,
@@ -340,25 +340,39 @@ exports.insertGeneraldialysisMemo = async function ({
   }
 };
 
-exports.getPeritonrumMemo = async function (userId, year, month) {
+exports.getPeritonrumMemo = async function (
+  userId,
+  dateInstance1,
+  dateInstance2
+) {
   const connection = await pool.getConnection(async (conn) => conn);
 
   let hemodialysisMemos = [];
 
   const getPeritonrumHeaderMemoQuery = `
-      SELECT dialysisId, recordDate, dialysisTypeId
-      FROM DialysisHeader 
-      WHERE userId = ? AND YEAR(recordDate) = ? AND MONTH(recordDate) = ? AND dialysisTypeId = 1 or dialysisTypeId = 2;
+  SELECT dialysisId, recordDate, dialysisTypeId
+  FROM dremchan.dialysisHeader 
+  WHERE userId = ?
+  AND recordDate BETWEEN ? AND ?
+  AND dialysisTypeId = 1 
+  or recordDate BETWEEN ? AND ?
+  AND dialysisTypeId = 2;
     `;
 
-  const getPeritonrumHeaderMemoParams = [userId, year, month];
+  const getPeritonrumHeaderMemoParams = [
+    userId,
+    dateInstance1,
+    dateInstance2,
+    dateInstance1,
+    dateInstance2,
+  ];
   const [getPeritonrumHeaderMemoRows] = await connection.query(
     getPeritonrumHeaderMemoQuery,
     getPeritonrumHeaderMemoParams
   );
 
   const getPeritonrumDetailMemoQuery = `
-    SELECT degrees, exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, photo
+    SELECT degree, exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, photo
     FROM DialysisDetail 
     WHERE dialysisId = ?;
   `;
@@ -375,7 +389,7 @@ exports.getPeritonrumMemo = async function (userId, year, month) {
 
       if (getPeritonrumDetailMemoRows.length) {
         const {
-          degrees,
+          degree,
           exchangeTime,
           injectionConcentration,
           injectionAmount,
@@ -392,7 +406,7 @@ exports.getPeritonrumMemo = async function (userId, year, month) {
           dialysisId,
           recordDate,
           dialysisTypeId,
-          degrees,
+          degree,
           exchangeTime,
           injectionConcentration,
           injectionAmount,
@@ -432,7 +446,7 @@ exports.updateGenaraldialysisMemo = async function ({
     );
 
     const updateDialysisDetailQuery = `
-            UPDATE DialysisDetail SET degrees=?, exchangeTime = ?, injectionConcentration=?, injectionAmount=?, drainage=?, dehydration=?, weight=?, bloodPressure=?, bloodSugar=?, edema=?, memo = ?  ${
+            UPDATE DialysisDetail SET degree=?, exchangeTime = ?, injectionConcentration=?, injectionAmount=?, drainage=?, dehydration=?, weight=?, bloodPressure=?, bloodSugar=?, edema=?, memo = ?  ${
               imageUrl ? ", photo = ? " : ""
             }
             WHERE dialysisId = ?;
@@ -440,7 +454,7 @@ exports.updateGenaraldialysisMemo = async function ({
 
     const updateDialysisDetailParams = imageUrl
       ? [
-          dialysis.degrees,
+          dialysis.degree,
           dialysis.exchangeTime.replace("T", " ").replace(".000Z", ""),
           dialysis.injectionConcentration,
           dialysis.injectionAmount,
@@ -455,7 +469,7 @@ exports.updateGenaraldialysisMemo = async function ({
           dialysisId,
         ]
       : [
-          dialysis.degrees,
+          dialysis.degree,
           dialysis.exchangeTime.replace("T", " ").replace(".000Z", ""),
           dialysis.injectionConcentration,
           dialysis.injectionAmount,
@@ -490,4 +504,78 @@ exports.updateGenaraldialysisMemo = async function ({
 
     return [false, err.message];
   }
+};
+
+exports.getWeekPeritonrumMemo = async function (userId, year, month) {
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  let hemodialysisMemos = [];
+
+  const getPeritonrumHeaderMemoQuery = `
+      SELECT dialysisId, recordDate, dialysisTypeId
+      FROM DialysisHeader 
+      WHERE userId = ? AND YEAR(recordDate) = ? AND MONTH(recordDate) = ? AND dialysisTypeId = 1 or dialysisTypeId = 2;
+    `;
+
+  const getPeritonrumHeaderMemoParams = [userId, year, month];
+  const [getPeritonrumHeaderMemoRows] = await connection.query(
+    getPeritonrumHeaderMemoQuery,
+    getPeritonrumHeaderMemoParams
+  );
+
+  const getPeritonrumDetailMemoQuery = `
+    SELECT degree, exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, photo
+    FROM DialysisDetail 
+    WHERE dialysisId = ?;
+  `;
+
+  if (getPeritonrumHeaderMemoRows.length) {
+    for (dialysisMemo of getPeritonrumHeaderMemoRows) {
+      const { dialysisId, recordDate, dialysisTypeId } = dialysisMemo;
+
+      const getPeritonrumDetailMemoParams = [dialysisId];
+      const [getPeritonrumDetailMemoRows] = await connection.query(
+        getPeritonrumDetailMemoQuery,
+        getPeritonrumDetailMemoParams
+      );
+
+      if (getPeritonrumDetailMemoRows.length) {
+        const {
+          degree,
+          exchangeTime,
+          injectionConcentration,
+          injectionAmount,
+          drainage,
+          dehydration,
+          weight,
+          bloodPressure,
+          bloodSugar,
+          edema,
+          memo,
+          photo,
+        } = getPeritonrumDetailMemoRows[0];
+        hemodialysisMemos.push({
+          dialysisId,
+          recordDate,
+          dialysisTypeId,
+          degree,
+          exchangeTime,
+          injectionConcentration,
+          injectionAmount,
+          drainage,
+          dehydration,
+          weight,
+          bloodPressure,
+          bloodSugar,
+          edema,
+          memo,
+          photo,
+        });
+      }
+    }
+  }
+
+  connection.release();
+
+  return hemodialysisMemos;
 };
