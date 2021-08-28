@@ -1,4 +1,7 @@
 const { logger } = require("../../../config/winston");
+const { transporter } = require("../../../config/email");
+
+let nodemailer = require("nodemailer"); //노드메일러 모듈을 사용할 거다!
 
 const axios = require("axios").default;
 
@@ -8,8 +11,15 @@ const crypto = require("crypto");
 const secret_config = require("../../../config/secret");
 
 const userDao = require("../dao/userDao");
-let { calorieFunctions, getAgeFromBirth, getPotassium,
-  getPhosphorus, getProtein, getSodiumByAge } = require("../module/Calc");
+let {
+  calorieFunctions,
+  getAgeFromBirth,
+  getPotassium,
+  getPhosphorus,
+  getProtein,
+  getSodiumByAge,
+} = require("../module/Calc");
+const { getMaxListeners } = require("process");
 
 /**
  update : 2020.10.4
@@ -121,11 +131,23 @@ exports.signUp = async function (req, res) {
     const proteinCoefficientByKidneyType = kidneyTypeRows.protein;
 
     const inserNutritionParams = [
-      calorieFunctions[kidneyType]({ gender, weight, age, height, activityCoefficient }),
+      calorieFunctions[kidneyType]({
+        gender,
+        weight,
+        age,
+        height,
+        activityCoefficient,
+      }),
       getPhosphorus(kidneyType, height, age),
       getSodiumByAge(age),
       getPotassium(),
-      getProtein(kidneyType, gender, height, proteinCoefficientByKidneyType, age),
+      getProtein(
+        kidneyType,
+        gender,
+        height,
+        proteinCoefficientByKidneyType,
+        age
+      ),
     ];
 
     console.log(inserNutritionParams);
@@ -440,11 +462,23 @@ exports.saveKakaoUserInfo = async function (req, res) {
     const proteinCoefficientByKidneyType = kidneyTypeRows.protein;
 
     const inserNutritionParams = [
-      calorieFunctions[kidneyType]({ gender, weight, age, height, activityCoefficient }),
+      calorieFunctions[kidneyType]({
+        gender,
+        weight,
+        age,
+        height,
+        activityCoefficient,
+      }),
       getPhosphorus(kidneyType, height, age),
       getSodiumByAge(age),
       getPotassium(),
-      getProtein(kidneyType, gender, height, proteinCoefficientByKidneyType, age),
+      getProtein(
+        kidneyType,
+        gender,
+        height,
+        proteinCoefficientByKidneyType,
+        age
+      ),
     ];
 
     console.log(inserNutritionParams);
@@ -452,7 +486,6 @@ exports.saveKakaoUserInfo = async function (req, res) {
     const inserNutritionRows = await userDao.insertuserRequiredNuturition(
       inserNutritionParams
     );
-
 
     if (updateKakaoUserRows.affectedRows) {
       return res.json({
@@ -591,7 +624,6 @@ exports.changeBasicInfo = async function (req, res) {
       id
     );
 
-
     const [userRow] = await userDao.findUserByUserId(id);
     console.log(userRow);
     const [[activityRow]] = await userDao.selectActivity(activityId);
@@ -604,9 +636,21 @@ exports.changeBasicInfo = async function (req, res) {
     const activityCoefficient = activityRow.pa;
     const proteinCoefficientByKidneyType = kidneyTypeRows.protein;
 
-    const requiredCalorie = calorieFunctions[kidneyType]({ gender, weight, age, height, activityCoefficient });
+    const requiredCalorie = calorieFunctions[kidneyType]({
+      gender,
+      weight,
+      age,
+      height,
+      activityCoefficient,
+    });
     const requiredPhosphorus = getPhosphorus(kidneyType, height, age);
-    const requiredProtein = getProtein(kidneyType, gender, height, proteinCoefficientByKidneyType, age);
+    const requiredProtein = getProtein(
+      kidneyType,
+      gender,
+      height,
+      proteinCoefficientByKidneyType,
+      age
+    );
 
     console.log("calorie : " + requiredCalorie);
     console.log("phosphrus : " + requiredPhosphorus);
@@ -617,7 +661,10 @@ exports.changeBasicInfo = async function (req, res) {
       id
     );
 
-    if (updateBasicInfoRow.affectedRows && chageBasicNutritionRow.affectedRows) {
+    if (
+      updateBasicInfoRow.affectedRows &&
+      chageBasicNutritionRow.affectedRows
+    ) {
       return res.json({
         isSuccess: true,
         code: 200,
@@ -643,18 +690,13 @@ exports.getMyInfo = async function (req, res) {
   console.log({ id });
 
   try {
-
-
     const [userRow] = await userDao.findUserByUserId(id);
 
-
     const [nutritionRow] = await userDao.findNutiritionByID(id);
-
 
     // console.log(userRow);
     // console.log(nutritionRow);
     if (userRow) {
-
       return res.json({
         isSuccess: true,
         code: 200,
@@ -709,7 +751,6 @@ exports.saveKidney01 = async function (req, res) {
       id
     );
 
-
     if (updateBasicNutritionRow.affectedRows) {
       return res.json({
         isSuccess: true,
@@ -735,13 +776,11 @@ exports.changeBasicNutrition = async function (req, res) {
     verifiedToken: { id },
   } = req;
 
-
   try {
     const [updateBasicNutritionRow] = await userDao.updateBasicNutrition(
-        [calorie, protein, phosphorus, potassium, sodium],
-        id
+      [calorie, protein, phosphorus, potassium, sodium],
+      id
     );
-
 
     if (updateBasicNutritionRow.affectedRows) {
       return res.json({
@@ -762,30 +801,51 @@ exports.changeBasicNutrition = async function (req, res) {
   }
 };
 
-
 //kidney 저장
 exports.saveKidney01 = async function (req, res) {
-  console.log("들어옴")
+  console.log("들어옴");
   const {
     verifiedToken: { id },
-    body: { exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo},
-
+    body: {
+      exchangeTime,
+      injectionConcentration,
+      injectionAmount,
+      drainage,
+      dehydration,
+      weight,
+      bloodPressure,
+      bloodSugar,
+      edema,
+      memo,
+    },
   } = req;
 
   console.log(req.body);
   console.log(req.verifiedToken);
 
-  try{
+  try {
+    const insertsaveKidney01Params = [
+      exchangeTime,
+      injectionConcentration,
+      injectionAmount,
+      drainage,
+      dehydration,
+      weight,
+      bloodPressure,
+      bloodSugar,
+      edema,
+      memo,
+      id,
+    ];
 
-  const insertsaveKidney01Params = [
-    exchangeTime, injectionConcentration, injectionAmount, drainage, dehydration, weight, bloodPressure, bloodSugar, edema, memo, id
-  ];
+    const userId = id;
+    const typeId = 1;
 
-
-  const userId = id;
-  const typeId = 1;
-
-  const savekidney01Row = await userDao.saveKidney01(insertsaveKidney01Params, userId, typeId);
+    const savekidney01Row = await userDao.saveKidney01(
+      insertsaveKidney01Params,
+      userId,
+      typeId
+    );
 
     if (savekidney01Row.affectedRows) {
       return res.json({
@@ -804,30 +864,47 @@ exports.saveKidney01 = async function (req, res) {
     logger.error(`App - saveKideney01 Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
-
 };
 
 // saveKidey02
 exports.saveKidney02 = async function (req, res) {
   const {
     verifiedToken: { id },
-    body: { exchangeTime, injectionConcentration, injectionAmount, initialDrainage, dehydration, weight, edema, memo},
-
+    body: {
+      exchangeTime,
+      injectionConcentration,
+      injectionAmount,
+      initialDrainage,
+      dehydration,
+      weight,
+      edema,
+      memo,
+    },
   } = req;
 
   console.log(req.body);
 
-  try{
-
+  try {
     const insertsaveKidney02Params = [
-      exchangeTime, injectionConcentration, injectionAmount, initialDrainage, dehydration, weight, edema, memo, id
+      exchangeTime,
+      injectionConcentration,
+      injectionAmount,
+      initialDrainage,
+      dehydration,
+      weight,
+      edema,
+      memo,
+      id,
     ];
-
 
     const userId = id;
     const typeId = 2;
 
-    const savekidney02Row = await userDao.saveKidney02(insertsaveKidney02Params, userId, typeId);
+    const savekidney02Row = await userDao.saveKidney02(
+      insertsaveKidney02Params,
+      userId,
+      typeId
+    );
 
     if (savekidney02Row.affectedRows) {
       return res.json({
@@ -846,8 +923,48 @@ exports.saveKidney02 = async function (req, res) {
     logger.error(`App - saveKidney02 Query error\n: ${err.message}`);
     return res.status(500).send(`Error: ${err.message}`);
   }
-
 };
 
+// 이메일 인증
+exports.EmailValidation = async function (req, res) {
+  let authNum = Math.random().toString().substr(2, 6);
 
+  const { email } = req.body;
 
+  console.log(email);
+
+  // 메일발송 함수
+
+  let info = await transporter.sendMail({
+    from: "haillydev@gmail.com", //보내는 주소 입력
+    to: email, //위에서 선언해준 받는사람 이메일
+    subject: "드림찬 고객님 인증 번호 안내드립ㄴ디ㅏ. ", // Subject line
+    text: "", // plain text body
+    html: `<h1>dream chan</h1>
+       <h3>고객님 안녕하세요</h3> 
+       <h4>드림찬과 함께 해주셔서 감사합니다. 어플리케이션에서 인증번호를 입력해주세요. ${authNum} </h4>`,
+    // html body
+  });
+
+  console.log(info);
+  // if (err) {
+  //   return res.json({
+  //     isSuccess: false,
+  //     code: 400,
+  //     message: "인증번호 전송 오류 잠시 후 실행해주세요. ",
+  //   });
+  // } else {
+  //   return res.json({
+  //     isSuccess: true,
+  //     code: 200,
+  //     message: "인증번호 인증 성공",
+  //   });
+  // }
+
+  return res.json({
+    isSuccess: true,
+    code: 200,
+    data: authNum,
+    message: "인증 요청 성공",
+  });
+};
