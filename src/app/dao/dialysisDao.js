@@ -356,7 +356,8 @@ exports.getPeritonrumMemo = async function (
   AND recordDate BETWEEN ? AND ?
   AND dialysisTypeId = 1 
   or recordDate BETWEEN ? AND ?
-  AND dialysisTypeId = 2;
+  AND dialysisTypeId = 2
+  order by recordDate asc;
     `;
 
   const getPeritonrumHeaderMemoParams = [
