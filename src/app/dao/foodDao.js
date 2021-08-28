@@ -170,6 +170,31 @@ exports.getNutrition = async function (id) {
   return NutritionRows;
 };
 
+// 날짜 별 영양소 조회(설정 날짜)
+exports.getNutritionWithDate = async function (id, date) {
+  console.log("날짜 별 영양소 조회 들어옴");
+  const connection = await pool.getConnection(async (conn) => conn);
+
+  const getNutritionQuery = `
+   SELECT f.calorie, f.protein, f.phosphorus, f.sodium, f.potassium
+    FROM foodIntakeRecord fir
+            JOIN foodIntakeRecordSub firs
+                  ON fir.foodIntakeRecordId = firs.foodIntakeRecordId AND
+                    fir.foodIntakeRecordTypeId = firs.foodIntakeRecordTypeId
+            JOIN food f ON firs.foodId = f.foodId
+    WHERE fir.userId = ?
+      AND date(createdAt) = date(?);
+  `;
+  const getNutritionParams = [id, date];
+  const [NutritionRows] = await connection.query(
+    getNutritionQuery,
+    getNutritionParams
+  );
+  connection.release();
+  console.log(NutritionRows);
+  return NutritionRows;
+};
+
 exports.insertFoodIntakeRecord = async function (
   foodIntakeRecordTypeId,
   basketFoods,
