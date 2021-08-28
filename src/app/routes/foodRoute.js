@@ -7,6 +7,7 @@ module.exports = function (app) {
   app.get("/food-record", jwtMiddleware, food.getFoodRecord);
 
   app.get("/food-record/date", jwtMiddleware, food.getNutrition);
+  app.get("/food-recordWithDate", jwtMiddleware, food.getNutritionWithDate);
 
   app.post("/food-record/date", jwtMiddleware, food.getFoodRecordWithDate);
 
