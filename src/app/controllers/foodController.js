@@ -205,6 +205,70 @@ exports.getNutrition = async function (req, res) {
   }
 };
 
+// nutrition 계산 후 가져오기
+exports.getNutritionWithDate = async function (req, res) {
+  console.log("getNutritionWithDate 들어옴");
+  const {
+    query: { date },
+    verifiedToken: { id },
+  } = req;
+
+  try {
+    const nutritionRows = await foodDao.getNutritionWithDate(id, date);
+    console.log("nutritionRow : ");
+    console.log(nutritionRows.length);
+    let calorie = 0;
+    let protein = 0;
+    let phosphorus = 0;
+    let potassium = 0;
+    let sodium = 0;
+
+    let i = 0;
+    while (i < nutritionRows.length) {
+      calorie += nutritionRows[i].calorie;
+      protein += nutritionRows[i].protein;
+      phosphorus += nutritionRows[i].phosphorus;
+      potassium += nutritionRows[i].potassium;
+      sodium += nutritionRows[i].sodium;
+      console.log(nutritionRows[i]);
+      i++;
+    }
+
+    console.log("칼로리 : ");
+    console.log(calorie);
+
+    let nutrition = {
+      calorie: calorie.toFixed(3),
+      protein: protein.toFixed(3),
+      phosphorus: phosphorus.toFixed(3),
+      potassium: potassium.toFixed(3),
+      sodium: sodium.toFixed(3),
+    };
+    console.log("");
+    console.log(nutrition);
+
+    if (nutritionRows.length) {
+      return res.json({
+        isSuccess: true,
+        code: 200,
+        message: "영양소 정보 가져오기 성공",
+        nutrition,
+      });
+    } else {
+      return res.json({
+        isSuccess: false,
+        code: 400,
+        message: "영양소 정보가 없습니다.",
+        nutrition,
+      });
+    }
+  } catch (err) {
+    console.log("2");
+    logger.error(`App - getNutrition Query error\n: ${err.message}`);
+    return res.status(500).send(`Error: ${err.message}`);
+  }
+};
+
 exports.saveFoodRecord = async function (req, res) {
   const {
     body: { foodIntakeRecordType, basketFoods },
@@ -338,7 +402,10 @@ exports.getFoodCategory = async function (req, res) {
         isSuccess: true,
         code: 200,
         message: "음식 카테고리 정보 가져오기 성공",
-        foodCategories: foodCategoryRows.map((row) => ({name: row.category, selected: false})),
+        foodCategories: foodCategoryRows.map((row) => ({
+          name: row.category,
+          selected: false,
+        })),
       });
     } else {
       return res.json({
